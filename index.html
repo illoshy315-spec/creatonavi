@@ -46,12 +46,35 @@
   /* NAV */
   .nav { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); }
   .nav-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; padding: 0 16px; gap: 4px; }
-  .nav-brand { font-weight: 800; font-size: 15px; color: var(--accent); padding: 14px 8px 14px 0; margin-right: 8px; white-space: nowrap; letter-spacing: -0.02em; }
+  .nav-brand { font-weight: 800; font-size: 15px; color: var(--accent); padding: 14px 8px 14px 0; margin-right: 8px; white-space: nowrap; letter-spacing: -0.02em; flex: 1; }
   .nav-tabs { display: flex; gap: 1px; overflow-x: auto; scrollbar-width: none; }
   .nav-tabs::-webkit-scrollbar { display: none; }
   .nav-tab { padding: 13px 13px; font-size: 12.5px; font-weight: 500; color: var(--text3); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
   .nav-tab:hover { color: var(--text2); }
   .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* HAMBURGER */
+  .hamburger { display: none; flex-direction: column; gap: 5px; cursor: pointer; padding: 10px; border: none; background: none; flex-shrink: 0; }
+  .hamburger span { display: block; width: 20px; height: 2px; background: var(--text2); border-radius: 2px; transition: all 0.25s; }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .side-menu { position: fixed; top: 0; left: -260px; width: 260px; height: 100vh; background: var(--surface); border-right: 1px solid var(--border); z-index: 200; transition: left 0.25s ease; padding: 20px 0; box-shadow: var(--shadow-lg); display: flex; flex-direction: column; }
+  .side-menu.open { left: 0; }
+  .side-menu-brand { font-weight: 800; font-size: 16px; color: var(--accent); padding: 14px 20px 20px; border-bottom: 1px solid var(--border); }
+  .side-menu-tabs { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .side-tab { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 20px; font-size: 14px; font-weight: 500; color: var(--text2); border: none; background: none; cursor: pointer; text-align: left; transition: all 0.15s; }
+  .side-tab:hover { background: var(--surface2); color: var(--text); }
+  .side-tab.active { background: var(--accent-light); color: var(--accent); font-weight: 700; }
+  .side-menu-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+  .side-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 199; display: none; backdrop-filter: blur(2px); }
+  .side-overlay.open { display: block; }
+
+  @media (max-width: 700px) {
+    .hamburger { display: flex; }
+    .nav-tabs { display: none; }
+  }
 
   /* LAYOUT */
   .page { display: none; max-width: 900px; margin: 0 auto; padding: 24px 16px; }
@@ -326,9 +349,40 @@
   </button>
 </div>
 
+<!-- SIDE OVERLAY -->
+<div class="side-overlay" id="side-overlay" onclick="closeSideMenu()"></div>
+
+<!-- SIDE MENU -->
+<div class="side-menu" id="side-menu">
+  <div class="side-menu-brand">⚡ 크리에이토나비</div>
+  <div class="side-menu-tabs">
+    <button class="side-tab active" id="side-tab-dashboard" onclick="navigate('dashboard');closeSideMenu()">🏠 대시보드</button>
+    <button class="side-tab" id="side-tab-channels" onclick="navigate('channels');closeSideMenu()">📺 채널 일정</button>
+    <button class="side-tab" id="side-tab-ai" onclick="navigate('ai');closeSideMenu()">🤖 AI 구독</button>
+    <button class="side-tab" id="side-tab-domains" onclick="navigate('domains');closeSideMenu()">🌐 도메인</button>
+    <button class="side-tab" id="side-tab-subs" onclick="navigate('subs');closeSideMenu()">💸 기타 구독</button>
+    <button class="side-tab" id="side-tab-income" onclick="navigate('income');closeSideMenu()">💰 수입</button>
+    <button class="side-tab" id="side-tab-tax" onclick="navigate('tax');closeSideMenu()">🧾 세금</button>
+  </div>
+  <div class="side-menu-footer">
+    <div id="side-user-info" style="display:none; align-items:center; gap:8px; margin-bottom:4px;">
+      <img id="side-user-photo" src="" width="28" height="28" style="border-radius:50%; border:1.5px solid var(--border2);">
+      <span id="side-user-name" style="font-size:13px; color:var(--text2); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+    </div>
+    <button class="btn btn-ghost btn-sm" onclick="exportData()" style="width:100%; justify-content:center;">⬇ 백업</button>
+    <label class="btn btn-ghost btn-sm" style="cursor:pointer; margin:0; width:100%; justify-content:center;">
+      ⬆ 복원<input type="file" accept=".json" onchange="importData(event)" style="display:none;">
+    </label>
+    <button class="btn btn-ghost btn-sm" id="side-signout-btn" onclick="signOut()" style="display:none; width:100%; justify-content:center;">로그아웃</button>
+  </div>
+</div>
+
 <!-- NAV -->
 <nav class="nav">
   <div class="nav-inner">
+    <button class="hamburger" id="hamburger" onclick="toggleSideMenu()">
+      <span></span><span></span><span></span>
+    </button>
     <div class="nav-brand">⚡ 크리에이토나비</div>
     <div class="nav-tabs">
       <button class="nav-tab active" id="tab-dashboard" onclick="navigate('dashboard')">🏠 대시보드</button>
@@ -1118,9 +1172,25 @@ function genId() {
 function navigate(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.side-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  event.target.classList.add('active');
+  const navTab = document.getElementById('tab-' + page);
+  if (navTab) navTab.classList.add('active');
+  const sideTab = document.getElementById('side-tab-' + page);
+  if (sideTab) sideTab.classList.add('active');
   renderAll();
+}
+
+function toggleSideMenu() {
+  document.getElementById('side-menu').classList.toggle('open');
+  document.getElementById('side-overlay').classList.toggle('open');
+  document.getElementById('hamburger').classList.toggle('open');
+}
+
+function closeSideMenu() {
+  document.getElementById('side-menu').classList.remove('open');
+  document.getElementById('side-overlay').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
 }
 
 // ========================
@@ -2544,13 +2614,21 @@ auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     loginScreen.style.display = 'none';
     userInfo.style.display = 'flex';
-    if (user.photoURL) userPhoto.src = user.photoURL;
+    if (user.photoURL) {
+      userPhoto.src = user.photoURL;
+      document.getElementById('side-user-photo').src = user.photoURL;
+    }
+    if (user.displayName) document.getElementById('side-user-name').textContent = user.displayName;
+    document.getElementById('side-user-info').style.display = 'flex';
+    document.getElementById('side-signout-btn').style.display = 'block';
     await loadStateFromFirestore();
     renderAll();
   } else {
     currentUser = null;
     loginScreen.style.display = 'flex';
     userInfo.style.display = 'none';
+    document.getElementById('side-user-info').style.display = 'none';
+    document.getElementById('side-signout-btn').style.display = 'none';
   }
 });
 </script>
