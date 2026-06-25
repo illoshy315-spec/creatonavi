@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>크리에이터 대시보드</title>
+<style>
+  :root {
+    --bg: #f2ede4;
+    --surface: #faf7f2;
+    --surface2: #f5f0e8;
+    --surface3: #ede8df;
+    --border: #ddd8ce;
+    --border2: #ccc6ba;
+    --text: #2a2a20;
+    --text2: #6b6858;
+    --text3: #9e9b8c;
+    --accent: #4e7a52;
+    --accent-dim: #3d6341;
+    --accent-light: #e8f0e9;
+    --accent-hover: #3d6341;
+    --red: #b85450;
+    --red-light: #f9eded;
+    --yellow: #a0762a;
+    --yellow-light: #fdf5e4;
+    --green: #4e7a52;
+    --green-light: #e8f0e9;
+    --blue: #4a6fa5;
+    --blue-light: #e8eef7;
+    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+    --radius: 14px;
+    --radius-sm: 10px;
+    --radius-xs: 7px;
+    --glow: 0 0 20px rgba(78,122,82,0.1);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Pretendard', sans-serif; font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+  /* NAV */
+  .nav { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(12px); }
+  .nav-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; padding: 0 16px; gap: 4px; }
+  .nav-brand { font-weight: 800; font-size: 15px; color: var(--accent); padding: 14px 8px 14px 0; margin-right: 8px; white-space: nowrap; letter-spacing: -0.02em; }
+  .nav-tabs { display: flex; gap: 1px; overflow-x: auto; scrollbar-width: none; }
+  .nav-tabs::-webkit-scrollbar { display: none; }
+  .nav-tab { padding: 13px 13px; font-size: 12.5px; font-weight: 500; color: var(--text3); border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; transition: color 0.15s, border-color 0.15s; }
+  .nav-tab:hover { color: var(--text2); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* LAYOUT */
+  .page { display: none; max-width: 900px; margin: 0 auto; padding: 24px 16px; }
+  .page.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+  .page-title { font-size: 20px; font-weight: 700; }
+  .page-subtitle { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .card + .card { margin-top: 12px; }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 640px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+  /* STAT CARDS */
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+  .stat-label { font-size: 11px; color: var(--text2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .stat-value { font-size: 24px; font-weight: 700; margin-top: 6px; }
+  .stat-sub { font-size: 12px; color: var(--text2); margin-top: 4px; }
+
+  /* D-DAY BADGES */
+  .dday { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
+  .dday-red { background: var(--red-light); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+  .dday-yellow { background: var(--yellow-light); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+  .dday-green { background: var(--green-light); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+  .dday-blue { background: var(--blue-light); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+
+  /* ALERT CARDS (Dashboard) */
+  .alert-list { display: flex; flex-direction: column; gap: 8px; }
+  .alert-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 13px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: border-color 0.15s; }
+  .alert-item:hover { border-color: var(--border2); }
+  .alert-item.urgent { border-left: 3px solid var(--red); background: linear-gradient(90deg, rgba(248,113,113,0.04) 0%, transparent 40%); }
+  .alert-item.warn { border-left: 3px solid var(--yellow); background: linear-gradient(90deg, rgba(251,191,36,0.04) 0%, transparent 40%); }
+  .alert-item.ok { border-left: 3px solid var(--green); background: linear-gradient(90deg, rgba(74,222,128,0.04) 0%, transparent 40%); }
+  .alert-item-left { flex: 1; min-width: 0; }
+  .alert-item-name { font-weight: 600; font-size: 13.5px; }
+  .alert-item-meta { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text3); }
+  .empty-state .icon { font-size: 32px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state p { font-size: 13px; }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .section-title { font-size: 14px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.06em; }
+  .section-meta { font-size: 12px; color: var(--text3); }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: var(--radius-xs); font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-primary { background: var(--accent); color: #ffffff; }
+  .btn-primary:hover { background: var(--accent-hover); box-shadow: 0 2px 8px rgba(78,122,82,0.3); }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border2); }
+  .btn-ghost:hover { background: var(--surface2); color: var(--text); border-color: var(--text3); }
+  .btn-danger { background: var(--red-light); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
+  .btn-danger:hover { background: rgba(248,113,113,0.15); }
+  .btn-sm { padding: 5px 10px; font-size: 11.5px; }
+  .btn-icon { padding: 6px; border-radius: var(--radius-xs); background: none; border: none; cursor: pointer; color: var(--text2); transition: color 0.15s, background 0.15s; }
+  .btn-icon:hover { color: var(--text); background: var(--surface2); }
+
+  /* SUBSCRIPTION ITEM */
+  .sub-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; transition: border-color 0.15s, box-shadow 0.15s; }
+  .sub-item:hover { border-color: var(--border2); box-shadow: var(--glow); }
+  .sub-item + .sub-item { margin-top: 8px; }
+  .sub-item-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .sub-item-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  .sub-icon { width: 38px; height: 38px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .sub-info { flex: 1; min-width: 0; }
+  .sub-name { font-weight: 600; font-size: 14px; }
+  .sub-plan { font-size: 12px; color: var(--text2); }
+  .sub-meta { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .sub-meta-item { font-size: 12px; color: var(--text3); }
+  .sub-meta-item span { color: var(--text2); font-weight: 500; }
+  .sub-actions { display: flex; gap: 4px; }
+  .sub-amount { font-size: 16px; font-weight: 700; text-align: right; color: var(--accent); }
+  .sub-currency { font-size: 11px; color: var(--text3); }
+
+  /* CHANNEL ITEM */
+  .ch-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; transition: border-color 0.15s; }
+  .ch-item:hover { border-color: var(--border2); }
+  .ch-item + .ch-item { margin-top: 8px; }
+  .ch-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; border: 1px solid var(--border); }
+  .ch-info { flex: 1; min-width: 120px; }
+  .ch-name { font-weight: 600; font-size: 14px; }
+  .ch-freq { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .ch-right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+  .ch-next { text-align: right; }
+  .ch-next-date { font-size: 13px; font-weight: 600; color: var(--text); }
+  .ch-next-label { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+  /* DOMAIN ITEM */
+  .domain-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; transition: border-color 0.15s; }
+  .domain-item:hover { border-color: var(--border2); }
+  .domain-item + .domain-item { margin-top: 8px; }
+  .domain-item-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .domain-name { font-weight: 700; font-size: 15px; font-family: 'SF Mono', 'Fira Code', monospace; color: var(--accent); }
+  .domain-registrar { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .domain-meta { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+  .domain-meta-item { font-size: 12px; color: var(--text3); }
+  .domain-meta-item span { color: var(--text2); font-weight: 500; }
+
+  /* HISTORY */
+  .history-list { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .history-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; font-size: 12px; color: var(--text2); }
+  .history-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+  /* MODAL */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; backdrop-filter: blur(4px); }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface2); border: 1px solid var(--border2); border-radius: var(--radius); width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .modal-title { font-size: 15px; font-weight: 700; }
+  .modal-body { padding: 20px; }
+  .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+  /* FORM */
+  .form-group { margin-bottom: 16px; }
+  .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.07em; }
+  .form-control { width: 100%; padding: 9px 12px; border: 1px solid var(--border2); border-radius: var(--radius-xs); font-size: 13.5px; color: var(--text); background: var(--surface3); transition: border-color 0.15s, box-shadow 0.15s; }
+  .form-control:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(74,222,128,0.12); }
+  select.form-control { cursor: pointer; }
+  select.form-control option { background: var(--surface); color: var(--text); }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .form-divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+
+  /* CHIP / TAG */
+  .tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .tag-accent { background: var(--accent-light); color: var(--accent); }
+  .tag-gray { background: var(--surface3); color: var(--text2); border: 1px solid var(--border2); }
+
+  /* TIMELINE */
+  .timeline { margin-top: 8px; }
+  .timeline-bar { height: 5px; background: var(--surface3); border-radius: 3px; position: relative; overflow: hidden; }
+  .timeline-fill { height: 100%; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); border-radius: 3px; transition: width 0.3s; }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+
+  /* SUMMARY ROW */
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 13px; }
+  .summary-row + .summary-row { border-top: 1px solid var(--border); }
+  .summary-total { font-weight: 700; font-size: 15px; color: var(--accent); }
+
+  /* SCROLLABLE */
+  .scroll-x { overflow-x: auto; }
+
+  /* TODAY */
+  .today-banner { background: linear-gradient(135deg, #dceadc 0%, #e6ede0 50%, #d8e8d4 100%); border: 1px solid #c2d9c4; border-radius: var(--radius); padding: 22px; margin-bottom: 20px; box-shadow: var(--shadow); position: relative; overflow: hidden; }
+  .today-banner::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; background: radial-gradient(circle, rgba(78,122,82,0.12) 0%, transparent 70%); pointer-events:none; }
+  .today-banner h2 { font-size: 18px; font-weight: 800; color: #1e3320; margin-bottom: 3px; letter-spacing: -0.02em; }
+  .today-banner p { font-size: 12px; color: #4a6b4e; }
+  .today-stats { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .today-stat { display: flex; flex-direction: column; background: rgba(255,255,255,0.55); border: 1px solid rgba(78,122,82,0.2); border-radius: 10px; padding: 10px 14px; min-width: 110px; backdrop-filter: blur(4px); }
+  .today-stat-val { font-size: 20px; font-weight: 800; color: var(--accent); letter-spacing: -0.02em; }
+  .today-stat-lbl { font-size: 10.5px; color: #4a6b4e; margin-top: 3px; line-height: 1.3; }
+
+  /* CURRENCY TOGGLE */
+  .currency-toggle { display: inline-flex; border: 1px solid var(--border2); border-radius: var(--radius-xs); overflow: hidden; }
+  .currency-btn { padding: 5px 10px; font-size: 12px; cursor: pointer; background: none; border: none; color: var(--text2); }
+  .currency-btn.active { background: var(--accent); color: #0c1410; }
+
+  /* PROGRESS */
+  .progress-bar { height: 4px; background: var(--surface3); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  .progress-fill { height: 100%; border-radius: 2px; }
+
+  /* CALENDAR */
+  .cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .cal-legend { display:flex; gap:14px; margin-bottom:12px; flex-wrap:wrap; }
+  .cal-legend-item { display:flex; align-items:center; gap:5px; font-size:12px; color:var(--text2); }
+  .cal-dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+  .cal-weekday { text-align:center; font-size:11px; font-weight:700; color:var(--text3); padding:4px 0 8px; letter-spacing:0.04em; }
+  .cal-weekday:first-child { color:var(--red); }
+  .cal-weekday:last-child { color:var(--blue); }
+  .cal-cell { min-height:48px; border-radius:var(--radius-xs); padding:4px; cursor:pointer; transition:background 0.12s; position:relative; }
+  .cal-cell:hover { background:var(--surface2); }
+  .cal-cell.today .cal-num { background:var(--accent); color:#0c1410; border-radius:50%; width:22px; height:22px; display:flex; align-items:center; justify-content:center; font-weight:800; }
+  .cal-cell.selected { background:var(--accent-light); }
+  .cal-cell.other-month { opacity:0.2; cursor:default; }
+  .cal-cell.other-month:hover { background:none; }
+  .cal-num { font-size:12px; font-weight:500; width:22px; height:22px; display:flex; align-items:center; justify-content:center; color:var(--text2); }
+  .cal-dots { display:flex; gap:2px; flex-wrap:wrap; margin-top:3px; padding-left:2px; }
+  .cal-detail { margin-top:14px; border-top:1px solid var(--border); padding-top:14px; }
+  .cal-detail-title { font-size:11px; font-weight:700; margin-bottom:8px; color:var(--text3); text-transform:uppercase; letter-spacing:0.06em; }
+  .cal-detail-item { display:flex; align-items:center; gap:8px; padding:7px 0; font-size:13px; border-bottom:1px solid var(--border); color:var(--text); }
+  .cal-detail-item:last-child { border-bottom:none; }
+
+  .today-stat-btn { cursor:pointer; transition:opacity 0.15s, transform 0.1s; }
+  .today-stat-btn:hover { opacity:0.85; transform:translateY(-1px); }
+  .today-stat-btn.active { box-shadow:0 0 0 2px var(--accent); }
+  .banner-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid rgba(74,222,128,0.1); font-size:13px; }
+  .banner-row:last-child { border-bottom:none; }
+  .banner-row-label { color:var(--text2); }
+  .banner-row-val { font-weight:700; color:var(--accent); }
+
+  /* DAY PICKER */
+  .schedule-type-toggle { display:flex; border:1px solid var(--border2); border-radius:var(--radius-xs); overflow:hidden; margin-top:4px; }
+  .sch-type-btn { flex:1; padding:7px; font-size:12px; font-weight:600; background:none; border:none; cursor:pointer; color:var(--text3); transition:all 0.15s; }
+  .sch-type-btn.active { background:var(--accent); color:#fff; }
+  .day-picker { display:flex; gap:5px; }
+  .day-btn { display:flex; flex-direction:column; align-items:center; cursor:pointer; }
+  .day-btn input { display:none; }
+  .day-btn span { width:36px; height:36px; border-radius:50%; border:1.5px solid var(--border2); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:var(--text3); transition:all 0.15s; }
+  .day-btn:hover span { border-color:var(--accent); color:var(--accent); }
+  .day-btn input:checked + span { background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:0 2px 8px rgba(78,122,82,0.3); }
+  .day-btn:nth-child(1) input:checked + span { background:var(--red); color:white; border-color:var(--red); }
+  .day-btn:nth-child(7) input:checked + span { background:var(--blue); color:white; border-color:var(--blue); }
+
+  /* TOGGLE SWITCH */
+  .toggle-switch { position:relative; display:inline-block; width:36px; height:20px; flex-shrink:0; }
+  .toggle-switch input { opacity:0; width:0; height:0; }
+  .toggle-slider { position:absolute; cursor:pointer; inset:0; background:var(--border); border:1px solid var(--border2); border-radius:20px; transition:all 0.2s; }
+  .toggle-slider:before { content:''; position:absolute; width:14px; height:14px; left:2px; bottom:2px; background:#fff; border-radius:50%; transition:transform 0.2s; box-shadow:0 1px 3px rgba(0,0,0,0.2); }
+  .toggle-switch input:checked + .toggle-slider { background:var(--accent); border-color:var(--accent-dim); }
+  .toggle-switch input:checked + .toggle-slider:before { transform:translateX(16px); }
+
+  /* INCOME */
+  .income-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; transition:border-color 0.15s; }
+  .income-item:hover { border-color:var(--border2); }
+  .income-item + .income-item { margin-top:8px; }
+  .income-type-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700; background:var(--green-light); color:var(--green); border:1px solid rgba(74,222,128,0.2); }
+  .income-amount { font-size:16px; font-weight:800; color:var(--accent); letter-spacing:-0.02em; }
+  .income-meta { font-size:12px; color:var(--text3); margin-top:2px; }
+
+  /* TAX */
+  .tax-event { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .tax-event:last-child { border-bottom:none; }
+  .tax-month-badge { width:44px; height:44px; border-radius:10px; background:var(--accent-light); color:var(--accent); font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; flex-shrink:0; border:1px solid rgba(74,222,128,0.2); }
+  .tax-month-badge.past { background:var(--surface2); color:var(--text3); border-color:var(--border); }
+  .tax-month-badge.soon { background:var(--yellow-light); color:var(--yellow); border-color:rgba(251,191,36,0.2); }
+  .tax-month-badge.urgent { background:var(--red-light); color:var(--red); border-color:rgba(248,113,113,0.2); }
+  .tax-event-info { flex:1; }
+  .savings-bar { height:8px; border-radius:4px; background:var(--surface3); overflow:hidden; margin-top:8px; }
+  .savings-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,var(--accent-dim),var(--accent)); transition:width 0.5s; }
+
+  /* CATEGORY BADGE */
+  .cat-badge { display:inline-flex; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:700; }
+
+  /* PAGE HEADER */
+  .page-title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+  .page-subtitle { font-size: 12px; color: var(--text2); margin-top: 3px; }
+
+  @media (max-width: 500px) {
+    .form-row { grid-template-columns: 1fr; }
+    .sub-item-header { flex-wrap: wrap; }
+    .cal-cell { min-height:38px; }
+    .today-stats { gap: 6px; }
+    .today-stat { min-width: 0; flex: 1; }
+  }
+</style>
+<!-- Firebase compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:none; position:fixed; inset:0; background:var(--bg); z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px;">
+  <div style="text-align:center;">
+    <div style="font-size:40px; margin-bottom:8px;">⚡</div>
+    <div style="font-size:24px; font-weight:800; color:var(--accent); letter-spacing:-0.02em;">크리에이토나비</div>
+    <div style="font-size:13px; color:var(--text2); margin-top:6px;">1인 크리에이터 운영 대시보드</div>
+  </div>
+  <button onclick="signInWithGoogle()" style="display:flex; align-items:center; gap:10px; padding:12px 24px; background:var(--surface); border:1px solid var(--border2); border-radius:var(--radius-sm); cursor:pointer; font-size:14px; font-weight:600; color:var(--text); box-shadow:var(--shadow-md);">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+    Google로 로그인
+  </button>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">⚡ 크리에이토나비</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" id="tab-dashboard" onclick="navigate('dashboard')">🏠 대시보드</button>
+      <button class="nav-tab" id="tab-channels" onclick="navigate('channels')">📺 채널 일정</button>
+      <button class="nav-tab" id="tab-ai" onclick="navigate('ai')">🤖 AI 구독</button>
+      <button class="nav-tab" id="tab-domains" onclick="navigate('domains')">🌐 도메인</button>
+      <button class="nav-tab" id="tab-subs" onclick="navigate('subs')">💸 기타 구독</button>
+      <button class="nav-tab" id="tab-income" onclick="navigate('income')">💰 수입</button>
+      <button class="nav-tab" id="tab-tax" onclick="navigate('tax')">🧾 세금</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:6px; padding:8px 0 8px 8px; flex-shrink:0;">
+      <button class="btn btn-ghost btn-sm" onclick="exportData()" title="데이터 내보내기">⬇ 백업</button>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer; margin:0;" title="데이터 불러오기">
+        ⬆ 복원<input type="file" accept=".json" onchange="importData(event)" style="display:none;">
+      </label>
+      <div id="user-info" style="display:none; align-items:center; gap:6px; margin-left:4px;">
+        <img id="user-photo" src="" width="26" height="26" style="border-radius:50%; border:1.5px solid var(--border2);">
+        <button class="btn btn-ghost btn-sm" onclick="signOut()" title="로그아웃">로그아웃</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="page-dashboard" class="page active">
+  <div class="today-banner">
+    <h2 id="dash-date"></h2>
+    <p>임박한 일정과 오늘 할 일을 확인하세요</p>
+    <div class="today-stats">
+      <div class="today-stat today-stat-btn" onclick="toggleBannerDetail('upload')">
+        <span class="today-stat-val" id="dash-upload-today">0</span>
+        <span class="today-stat-lbl">이번 주 업로드 예정 ›</span>
+      </div>
+      <div class="today-stat today-stat-btn" onclick="toggleBannerDetail('urgent')">
+        <span class="today-stat-val" id="dash-urgent-count">0</span>
+        <span class="today-stat-lbl">D-7 이내 이벤트 ›</span>
+      </div>
+      <div class="today-stat today-stat-btn" onclick="toggleBannerDetail('income')">
+        <span class="today-stat-val" id="dash-monthly-income">—</span>
+        <span class="today-stat-lbl">이번 달 수입 ›</span>
+      </div>
+      <div class="today-stat today-stat-btn" onclick="toggleBannerDetail('cost')">
+        <span class="today-stat-val" id="dash-monthly-cost">—</span>
+        <span class="today-stat-lbl">이번 달 지출 ›</span>
+      </div>
+    </div>
+    <div id="banner-detail" style="display:none; margin-top:14px; background:rgba(255,255,255,0.5); border:1px solid rgba(78,122,82,0.2); border-radius:10px; padding:12px 14px;">
+      <div id="banner-detail-content" style="font-size:13px; color:white;"></div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="cal-nav">
+      <button class="btn-icon" onclick="calPrev()">‹</button>
+      <span id="cal-title" style="font-weight:700; font-size:15px;"></span>
+      <button class="btn-icon" onclick="calNext()">›</button>
+    </div>
+    <div class="cal-legend">
+      <span class="cal-legend-item"><span class="cal-dot" style="background:var(--green)"></span>업로드</span>
+      <span class="cal-legend-item"><span class="cal-dot" style="background:var(--accent)"></span>AI 결제</span>
+      <span class="cal-legend-item"><span class="cal-dot" style="background:var(--red)"></span>도메인 갱신</span>
+      <span class="cal-legend-item"><span class="cal-dot" style="background:var(--yellow)"></span>세금 납부</span>
+    </div>
+    <div id="cal-grid" class="cal-grid"></div>
+    <div id="cal-detail" class="cal-detail" style="display:none;"></div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">⚠️ 임박한 일정</div>
+  </div>
+  <div id="dash-alerts" class="alert-list"></div>
+
+  <div class="divider"></div>
+
+  <div class="section-header">
+    <div class="section-title">📅 이번 주 업로드 일정</div>
+  </div>
+  <div id="dash-uploads" class="alert-list"></div>
+</div>
+
+<!-- ===== AI SUBSCRIPTIONS ===== -->
+<div id="page-ai" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">🤖 AI 구독 관리</div>
+      <div class="page-subtitle" id="ai-total-display">총 누적 비용 계산 중...</div>
+    </div>
+    <button class="btn btn-primary" onclick="openAiModal()">+ 구독 추가</button>
+  </div>
+
+  <div id="ai-summary-card" class="card" style="margin-bottom:16px; display:none;">
+    <div class="section-title" style="margin-bottom:14px;">월 예상 지출</div>
+    <div id="ai-summary-rows"></div>
+  </div>
+
+  <div id="ai-list"></div>
+</div>
+
+<!-- ===== CHANNELS ===== -->
+<div id="page-channels" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">📺 채널 업로드 일정</div>
+      <div class="page-subtitle">마지막 업로드 기준으로 다음 예정일 자동 계산</div>
+    </div>
+    <button class="btn btn-primary" onclick="openChannelModal()">+ 채널 추가</button>
+  </div>
+  <div id="channel-list"></div>
+</div>
+
+<!-- ===== DOMAINS ===== -->
+<div id="page-domains" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">🌐 도메인 / 호스팅</div>
+      <div class="page-subtitle" id="domain-total-display">연간 총 비용 계산 중...</div>
+    </div>
+    <button class="btn btn-primary" onclick="openDomainModal()">+ 추가</button>
+  </div>
+  <div id="domain-list"></div>
+</div>
+
+<!-- ===== 기타 구독 ===== -->
+<div id="page-subs" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">💸 기타 구독</div>
+      <div class="page-subtitle" id="subs-total-display">디자인툴, SaaS 등 월 비용 합계</div>
+    </div>
+    <button class="btn btn-primary" onclick="openSubModal()">+ 구독 추가</button>
+  </div>
+  <div id="subs-summary-card" class="card" style="margin-bottom:16px; display:none;">
+    <div class="section-title" style="margin-bottom:14px;">카테고리별 월 지출</div>
+    <div id="subs-summary-rows"></div>
+  </div>
+  <div id="subs-list"></div>
+</div>
+
+<!-- ===== 수입 ===== -->
+<div id="page-income" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">💰 수입</div>
+      <div class="page-subtitle" id="income-period-label">이번 달 수입</div>
+    </div>
+    <button class="btn btn-primary" onclick="openIncomeModal()">+ 수입 추가</button>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <div style="display:flex; gap:8px; align-items:center; margin-bottom:14px; flex-wrap:wrap;">
+      <button class="btn btn-ghost btn-sm" onclick="incomeNavPrev()">‹</button>
+      <span id="income-month-label" style="font-weight:700; font-size:15px;"></span>
+      <button class="btn btn-ghost btn-sm" onclick="incomeNavNext()">›</button>
+    </div>
+    <div id="income-summary"></div>
+  </div>
+  <div id="income-list"></div>
+</div>
+
+<!-- ===== 세금 ===== -->
+<div id="page-tax" class="page">
+  <div class="page-header">
+    <div>
+      <div class="page-title">🧾 세금 / 공과금</div>
+      <div class="page-subtitle">한국 프리랜서 기준 납부 캘린더 + 적립 추적</div>
+    </div>
+  </div>
+
+  <!-- 설정 카드 -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="section-title" style="margin-bottom:14px;">⚙️ 세금 설정</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">건강보험료 (월)</label>
+        <input class="form-control" id="tax-health" type="number" placeholder="0" oninput="saveTaxSettings()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">국민연금 (월)</label>
+        <input class="form-control" id="tax-pension" type="number" placeholder="0" oninput="saveTaxSettings()">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">세금 적립률 (%)</label>
+        <input class="form-control" id="tax-rate" type="number" placeholder="30" min="0" max="100" oninput="saveTaxSettings()">
+        <div class="form-hint">수입 발생 시 이 비율만큼 세금용으로 따로 적립</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">부가세 납부 대상</label>
+        <select class="form-control" id="tax-vat" onchange="saveTaxSettings()">
+          <option value="no">해당 없음</option>
+          <option value="yes">해당 (1월·7월)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 적립 현황 -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="section-title" style="margin-bottom:14px;">💰 세금 적립 현황</div>
+    <div id="tax-savings-summary"></div>
+    <div style="margin-top:14px;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">현재 적립액 (원)</label>
+          <input class="form-control" id="tax-saved" type="number" placeholder="0" oninput="saveTaxSettings()">
+        </div>
+        <div class="form-group" style="display:flex; align-items:flex-end;">
+          <button class="btn btn-ghost" style="width:100%" onclick="renderTax()">새로고침</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 납부 캘린더 -->
+  <div class="card">
+    <div class="section-title" style="margin-bottom:14px;">📅 연간 납부 캘린더</div>
+    <div id="tax-calendar"></div>
+  </div>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- AI Modal -->
+<div id="ai-modal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="ai-modal-title">AI 구독 추가</div>
+      <button class="btn-icon" onclick="closeModal('ai-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">서비스</label>
+        <select class="form-control" id="ai-service" onchange="onServiceChange()">
+          <option value="">선택하세요</option>
+          <option>Claude</option>
+          <option>ChatGPT</option>
+          <option>Gemini</option>
+          <option>DeepSeek</option>
+          <option>Grok</option>
+          <option>Perplexity</option>
+          <option>Midjourney</option>
+          <option value="custom">직접 입력</option>
+        </select>
+      </div>
+      <div class="form-group" id="ai-custom-name-group" style="display:none;">
+        <label class="form-label">서비스명 직접 입력</label>
+        <input class="form-control" id="ai-custom-name" placeholder="예: Notion AI">
+      </div>
+      <div class="form-group">
+        <label class="form-label">플랜</label>
+        <select class="form-control" id="ai-plan" onchange="onPlanChange()">
+          <option value="">먼저 서비스를 선택하세요</option>
+        </select>
+      </div>
+      <div class="form-group" id="ai-custom-plan-group" style="display:none;">
+        <label class="form-label">플랜명 직접 입력</label>
+        <input class="form-control" id="ai-custom-plan" placeholder="예: Business">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">금액</label>
+          <input class="form-control" id="ai-amount" type="number" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">통화</label>
+          <select class="form-control" id="ai-currency">
+            <option value="KRW">원 (KRW)</option>
+            <option value="USD">달러 (USD)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">매월 결제일</label>
+          <input class="form-control" id="ai-billing-day" type="number" min="1" max="31" placeholder="예: 15">
+        </div>
+        <div class="form-group">
+          <label class="form-label">구독 시작일</label>
+          <input class="form-control" id="ai-start-date" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">연결 카드 (선택)</label>
+        <input class="form-control" id="ai-card" placeholder="예: 신한 체크, 카카오뱅크, 법인카드">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('ai-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveAiSub()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Plan Change Modal -->
+<div id="plan-modal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">플랜 변경 기록</div>
+      <button class="btn-icon" onclick="closeModal('plan-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px;" id="plan-change-service-name"></p>
+      <div class="form-group">
+        <label class="form-label">새 플랜명</label>
+        <input class="form-control" id="pc-plan" placeholder="예: Max">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">새 금액</label>
+          <input class="form-control" id="pc-amount" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">통화</label>
+          <select class="form-control" id="pc-currency">
+            <option value="KRW">원</option>
+            <option value="USD">달러</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">변경일</label>
+        <input class="form-control" id="pc-date" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모 (선택)</label>
+        <input class="form-control" id="pc-memo" placeholder="예: Pro→Max 업그레이드">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('plan-modal')">취소</button>
+      <button class="btn btn-primary" onclick="savePlanChange()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Channel Modal -->
+<div id="channel-modal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="channel-modal-title">채널 추가</div>
+      <button class="btn-icon" onclick="closeModal('channel-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">플랫폼</label>
+        <select class="form-control" id="ch-platform">
+          <option value="">선택</option>
+          <option value="youtube">유튜브</option>
+          <option value="blog">블로그</option>
+          <option value="x">X (트위터)</option>
+          <option value="instagram">인스타그램</option>
+          <option value="threads">스레드</option>
+          <option value="tiktok">틱톡</option>
+          <option value="custom">직접 입력</option>
+        </select>
+      </div>
+      <div class="form-group" id="ch-custom-group" style="display:none;">
+        <label class="form-label">플랫폼명</label>
+        <input class="form-control" id="ch-custom-name" placeholder="예: 팟캐스트">
+      </div>
+      <div class="form-group">
+        <label class="form-label">채널명 / 계정명 (선택)</label>
+        <input class="form-control" id="ch-name" placeholder="예: @myhandle">
+      </div>
+      <div class="form-group">
+        <label class="form-label">업로드 주기</label>
+        <div class="schedule-type-toggle">
+          <button type="button" class="sch-type-btn active" id="sch-weekly-btn" onclick="setScheduleType('weekly')">주간 (요일 지정)</button>
+          <button type="button" class="sch-type-btn" id="sch-monthly-btn" onclick="setScheduleType('monthly')">월간 (날짜 지정)</button>
+        </div>
+      </div>
+      <div id="sch-weekly-group" class="form-group">
+        <label class="form-label">업로드 요일 (복수 선택)</label>
+        <div class="day-picker">
+          <label class="day-btn"><input type="checkbox" value="0"><span>일</span></label>
+          <label class="day-btn"><input type="checkbox" value="1"><span>월</span></label>
+          <label class="day-btn"><input type="checkbox" value="2"><span>화</span></label>
+          <label class="day-btn"><input type="checkbox" value="3"><span>수</span></label>
+          <label class="day-btn"><input type="checkbox" value="4"><span>목</span></label>
+          <label class="day-btn"><input type="checkbox" value="5"><span>금</span></label>
+          <label class="day-btn"><input type="checkbox" value="6"><span>토</span></label>
+        </div>
+      </div>
+      <div id="sch-monthly-group" class="form-group" style="display:none;">
+        <label class="form-label">업로드 날짜 (쉼표로 구분)</label>
+        <input class="form-control" id="ch-month-dates" placeholder="예: 1, 15  또는  5, 20, 25">
+        <div class="form-hint">매월 해당 날짜에 업로드</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">마지막 업로드일</label>
+        <input class="form-control" id="ch-last-upload" type="date">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('channel-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveChannel()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- Domain Modal -->
+<div id="domain-modal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="domain-modal-title">도메인 / 호스팅 추가</div>
+      <button class="btn-icon" onclick="closeModal('domain-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">도메인명 / 서비스명</label>
+        <input class="form-control" id="dm-domain" placeholder="예: example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Registrar / 호스팅사</label>
+        <select class="form-control" id="dm-registrar-select" onchange="onRegistrarChange()">
+          <option value="">선택하세요</option>
+          <optgroup label="도메인 등록">
+            <option>Cloudflare</option>
+            <option>GoDaddy</option>
+            <option>Namecheap</option>
+            <option>가비아</option>
+            <option>후이즈</option>
+            <option>아이네임즈</option>
+          </optgroup>
+          <optgroup label="호스팅 / 배포">
+            <option>Vercel</option>
+            <option>Netlify</option>
+            <option>GitHub Pages</option>
+            <option>AWS</option>
+            <option>카페24</option>
+            <option>Cafe24</option>
+            <option>Hosting.kr</option>
+          </optgroup>
+          <option value="custom">직접 입력</option>
+        </select>
+        <input class="form-control" id="dm-registrar-custom" placeholder="직접 입력" style="display:none; margin-top:8px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">갱신일</label>
+        <input class="form-control" id="dm-renewal" type="date">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">연간 비용</label>
+          <input class="form-control" id="dm-amount" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">통화</label>
+          <select class="form-control" id="dm-currency">
+            <option value="KRW">원 (KRW)</option>
+            <option value="USD">달러 (USD)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">연결 카드 (선택)</label>
+        <input class="form-control" id="dm-card" placeholder="예: 신한 체크, 카카오뱅크, 법인카드">
+      </div>
+      <div class="form-group">
+        <label class="form-label">유형</label>
+        <select class="form-control" id="dm-type">
+          <option value="domain">도메인</option>
+          <option value="hosting">호스팅</option>
+          <option value="cdn">CDN / 기타</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('domain-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveDomain()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 기타구독 Modal -->
+<div id="sub-modal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="sub-modal-title">기타 구독 추가</div>
+      <button class="btn-icon" onclick="closeModal('sub-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">서비스명</label>
+        <input class="form-control" id="sub-name" placeholder="예: Figma, Notion, Adobe CC">
+      </div>
+      <div class="form-group">
+        <label class="form-label">카테고리</label>
+        <select class="form-control" id="sub-category">
+          <option value="design">디자인툴</option>
+          <option value="productivity">생산성</option>
+          <option value="storage">스토리지 / 클라우드</option>
+          <option value="marketing">마케팅</option>
+          <option value="saas">기타 SaaS</option>
+          <option value="other">기타</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">플랜명 (선택)</label>
+        <input class="form-control" id="sub-plan" placeholder="예: Pro, Team">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">금액</label>
+          <input class="form-control" id="sub-amount" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">통화</label>
+          <select class="form-control" id="sub-currency">
+            <option value="KRW">원 (KRW)</option>
+            <option value="USD">달러 (USD)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">결제 주기</label>
+          <select class="form-control" id="sub-billing-cycle">
+            <option value="monthly">월간</option>
+            <option value="yearly">연간</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">결제일</label>
+          <input class="form-control" id="sub-billing-day" type="number" min="1" max="31" placeholder="매월 N일">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">연결 카드 (선택)</label>
+        <input class="form-control" id="sub-card" placeholder="예: 신한 체크, 카카오뱅크">
+      </div>
+      <div class="form-group">
+        <label class="form-label">구독 시작일</label>
+        <input class="form-control" id="sub-start-date" type="date">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('sub-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveSub()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 수입 Modal -->
+<div id="income-modal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="income-modal-title">수입 추가</div>
+      <button class="btn-icon" onclick="closeModal('income-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">수입 종류</label>
+        <select class="form-control" id="inc-type">
+          <option value="adsense">애드센스</option>
+          <option value="youtube">유튜브 수익</option>
+          <option value="writing">원고료</option>
+          <option value="brand">브랜드딜 / 협찬</option>
+          <option value="affiliate">제휴 수익</option>
+          <option value="product">디지털 상품 판매</option>
+          <option value="freelance">프리랜서 용역</option>
+          <option value="other">기타</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">메모 (거래처/내용)</label>
+        <input class="form-control" id="inc-memo" placeholder="예: 구글 애드센스 3월분, A사 원고료">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">금액</label>
+          <input class="form-control" id="inc-amount" type="number" min="0" placeholder="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">통화</label>
+          <select class="form-control" id="inc-currency">
+            <option value="KRW">원 (KRW)</option>
+            <option value="USD">달러 (USD)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">수입 발생일</label>
+          <input class="form-control" id="inc-date" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">실제 입금일 (선택)</label>
+          <input class="form-control" id="inc-paid-date" type="date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('income-modal')">취소</button>
+      <button class="btn btn-primary" onclick="saveIncome()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- History Modal -->
+<div id="history-modal" class="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="history-modal-title">플랜 변경 이력</div>
+      <button class="btn-icon" onclick="closeModal('history-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="history-list-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('history-modal')">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========================
+// DATA
+// ========================
+const AI_PRESETS = {
+  'Claude': [
+    { plan: 'Free', amount: 0, currency: 'USD' },
+    { plan: 'Pro', amount: 20, currency: 'USD' },
+    { plan: 'Max (5x)', amount: 100, currency: 'USD' },
+    { plan: 'Max (20x)', amount: 200, currency: 'USD' },
+  ],
+  'ChatGPT': [
+    { plan: 'Free', amount: 0, currency: 'USD' },
+    { plan: 'Plus', amount: 20, currency: 'USD' },
+    { plan: 'Pro', amount: 200, currency: 'USD' },
+    { plan: 'Team', amount: 30, currency: 'USD' },
+  ],
+  'Gemini': [
+    { plan: 'Free', amount: 0, currency: 'USD' },
+    { plan: 'Advanced', amount: 21900, currency: 'KRW' },
+    { plan: 'Business', amount: 24000, currency: 'KRW' },
+  ],
+  'DeepSeek': [
+    { plan: 'Free', amount: 0, currency: 'USD' },
+    { plan: 'Pro (API)', amount: 0, currency: 'USD' },
+  ],
+  'Grok': [
+    { plan: 'Free', amount: 0, currency: 'USD' },
+    { plan: 'Premium', amount: 16, currency: 'USD' },
+    { plan: 'Premium+', amount: 50, currency: 'USD' },
+  ],
+  'Perplexity': [
+    { plan: 'Free', amount: 0, currency: 'USD' },
+    { plan: 'Pro', amount: 20, currency: 'USD' },
+  ],
+  'Midjourney': [
+    { plan: 'Basic', amount: 10, currency: 'USD' },
+    { plan: 'Standard', amount: 30, currency: 'USD' },
+    { plan: 'Pro', amount: 60, currency: 'USD' },
+    { plan: 'Mega', amount: 120, currency: 'USD' },
+  ],
+};
+
+const PLATFORM_META = {
+  youtube:   { label: '유튜브',     icon: '📺', color: '#FF0000', bg: '#fff0f0' },
+  blog:      { label: '블로그',     icon: '✍️', color: '#FF6B35', bg: '#fff4f0' },
+  x:         { label: 'X',         icon: '𝕏', color: '#000000', bg: '#f0f0f0' },
+  instagram: { label: '인스타그램', icon: '📸', color: '#E1306C', bg: '#fff0f5' },
+  threads:   { label: '스레드',     icon: '🧵', color: '#000000', bg: '#f5f0ff' },
+  tiktok:    { label: '틱톡',       icon: '🎵', color: '#69C9D0', bg: '#f0fffe' },
+  custom:    { label: '기타',       icon: '📡', color: '#6366f1', bg: '#eef2ff' },
+};
+
+const SERVICE_ICONS = {
+  'Claude':      { icon: '🤖', bg: '#fff4e6' },
+  'ChatGPT':     { icon: '💬', bg: '#e6ffe6' },
+  'Gemini':      { icon: '✨', bg: '#e6f0ff' },
+  'DeepSeek':    { icon: '🔍', bg: '#e6f5ff' },
+  'Grok':        { icon: '⚡', bg: '#f5e6ff' },
+  'Perplexity':  { icon: '🔮', bg: '#ffe6f5' },
+  'Midjourney':  { icon: '🎨', bg: '#e6ffe8' },
+  'default':     { icon: '🔧', bg: '#f0f0f0' },
+};
+
+const USD_RATE = 1380;
+
+let state = { aiSubs:[], channels:[], domains:[], otherSubs:[], income:[], tax:{ healthInsurance:0, pension:0, savingsRate:30, vatApplicable:false, savedAmount:0 } };
+let editingAiId = null;
+let editingChannelId = null;
+let editingDomainId = null;
+let planChangeTargetId = null;
+
+function onRegistrarChange() {
+  const sel = document.getElementById('dm-registrar-select').value;
+  const custom = document.getElementById('dm-registrar-custom');
+  custom.style.display = sel === 'custom' ? 'block' : 'none';
+}
+
+function getRegistrarValue() {
+  const sel = document.getElementById('dm-registrar-select').value;
+  if (sel === 'custom') return document.getElementById('dm-registrar-custom').value.trim();
+  return sel;
+}
+
+function setRegistrarValue(val) {
+  const sel = document.getElementById('dm-registrar-select');
+  const custom = document.getElementById('dm-registrar-custom');
+  const options = Array.from(sel.options).map(o => o.value);
+  if (options.includes(val)) {
+    sel.value = val;
+    custom.style.display = 'none';
+  } else {
+    sel.value = 'custom';
+    custom.style.display = 'block';
+    custom.value = val || '';
+  }
+}
+
+// ========================
+// FIREBASE
+// ========================
+const firebaseConfig = {
+  apiKey: "AIzaSyDNRrtwk2-xXjcpOQ_1TkHKojqBo4sISjM",
+  authDomain: "creatonavi.firebaseapp.com",
+  projectId: "creatonavi",
+  storageBucket: "creatonavi.firebasestorage.app",
+  messagingSenderId: "418160401974",
+  appId: "1:418160401974:web:4d888e303578efa1a98297"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+let currentUser = null;
+let saveTimer = null;
+
+function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  auth.signInWithPopup(provider).catch(e => alert('로그인 실패: ' + e.message));
+}
+
+function signOut() {
+  if (!confirm('로그아웃 할까요?')) return;
+  auth.signOut();
+}
+
+function mergeState(base) {
+  return {
+    aiSubs:    base.aiSubs    || [],
+    channels:  base.channels  || [],
+    domains:   base.domains   || [],
+    otherSubs: base.otherSubs || [],
+    income:    base.income    || [],
+    tax:       base.tax       || { healthInsurance:0, pension:0, savingsRate:30, vatApplicable:false, savedAmount:0 },
+  };
+}
+
+function loadState() {
+  const raw = localStorage.getItem('creator-dash-v1');
+  return mergeState(raw ? JSON.parse(raw) : {});
+}
+
+async function loadStateFromFirestore() {
+  if (!currentUser) return;
+  try {
+    const doc = await db.collection('users').doc(currentUser.uid).collection('data').doc('state').get();
+    if (doc.exists) {
+      state = mergeState(doc.data());
+      localStorage.setItem('creator-dash-v1', JSON.stringify(state));
+    }
+  } catch(e) { console.warn('Firestore 로드 실패, 로컬 데이터 사용', e); }
+}
+
+function saveState() {
+  localStorage.setItem('creator-dash-v1', JSON.stringify(state));
+  if (currentUser) {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      db.collection('users').doc(currentUser.uid).collection('data').doc('state').set(state)
+        .catch(e => console.warn('Firestore 저장 실패', e));
+    }, 800);
+  }
+}
+
+function genId() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+// ========================
+// NAVIGATION
+// ========================
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  event.target.classList.add('active');
+  renderAll();
+}
+
+// ========================
+// UTILITY
+// ========================
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function diffDays(dateStr) {
+  const d = new Date(dateStr);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  return Math.ceil((d - now) / 86400000);
+}
+
+function nextBillingDate(billingDay) {
+  const now = new Date();
+  let year = now.getFullYear(), month = now.getMonth();
+  let d = new Date(year, month, billingDay);
+  if (d <= now) {
+    month++;
+    if (month > 11) { month = 0; year++; }
+    d = new Date(year, month, billingDay);
+  }
+  return d.toISOString().slice(0, 10);
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatAmt(amount, currency) {
+  if (!amount || amount == 0) return '무료';
+  if (currency === 'USD') return `$${amount}`;
+  return `₩${Number(amount).toLocaleString()}`;
+}
+
+function toKrw(amount, currency) {
+  if (currency === 'USD') return amount * USD_RATE;
+  return Number(amount);
+}
+
+function ddayBadge(days) {
+  if (days < 0) return `<span class="dday dday-red">만료됨</span>`;
+  if (days === 0) return `<span class="dday dday-red">🔴 D-Day</span>`;
+  if (days <= 3) return `<span class="dday dday-red">🔴 D-${days}</span>`;
+  if (days <= 7) return `<span class="dday dday-yellow">🟡 D-${days}</span>`;
+  return `<span class="dday dday-green">🟢 D-${days}</span>`;
+}
+
+// ch 객체 전체를 받는 새 버전
+function nextUploadDate(lastUpload, freq, freqType, ch) {
+  // 새 방식: ch 객체에 scheduleType 있으면 요일/날짜 기반
+  if (ch && ch.scheduleType) {
+    if (!lastUpload) return null;
+    const from = new Date(lastUpload);
+    from.setHours(0,0,0,0);
+    const start = new Date(from);
+    start.setDate(start.getDate() + 1); // 마지막 업로드 다음날부터 탐색
+
+    if (ch.scheduleType === 'weekly' && ch.weekDays && ch.weekDays.length) {
+      // 오늘 이후 가장 가까운 지정 요일
+      const now = new Date(); now.setHours(0,0,0,0);
+      const base = start > now ? start : now;
+      for (let i = 0; i <= 7; i++) {
+        const d = new Date(base);
+        d.setDate(base.getDate() + i);
+        if (ch.weekDays.includes(d.getDay())) return d.toISOString().slice(0, 10);
+      }
+    }
+    if (ch.scheduleType === 'monthly' && ch.monthDates && ch.monthDates.length) {
+      const now = new Date(); now.setHours(0,0,0,0);
+      const base = start > now ? start : now;
+      for (let i = 0; i <= 62; i++) {
+        const d = new Date(base);
+        d.setDate(base.getDate() + i);
+        if (ch.monthDates.includes(d.getDate())) return d.toISOString().slice(0, 10);
+      }
+    }
+    return null;
+  }
+  // 구 방식 호환
+  if (!lastUpload) return null;
+  const d = new Date(lastUpload);
+  if (freqType === 'week') {
+    d.setDate(d.getDate() + Math.round(7 / (freq || 1)));
+  } else {
+    d.setDate(d.getDate() + Math.round(30 / (freq || 1)));
+  }
+  return d.toISOString().slice(0, 10);
+}
+
+function durationLabel(startDate) {
+  if (!startDate) return '';
+  const start = new Date(startDate);
+  const now = new Date();
+  const months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+  const days = Math.floor((now - start) / 86400000);
+  if (days < 30) return `${days}일 사용 중`;
+  if (months < 12) return `${months}개월 사용 중`;
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  return remMonths > 0 ? `${years}년 ${remMonths}개월 사용 중` : `${years}년 사용 중`;
+}
+
+// ========================
+// CALENDAR
+// ========================
+let activeBannerDetail = null;
+
+function toggleBannerDetail(type) {
+  const detail = document.getElementById('banner-detail');
+  const content = document.getElementById('banner-detail-content');
+  document.querySelectorAll('.today-stat-btn').forEach(el => el.classList.remove('active'));
+
+  if (activeBannerDetail === type) {
+    activeBannerDetail = null;
+    detail.style.display = 'none';
+    return;
+  }
+  activeBannerDetail = type;
+  detail.style.display = 'block';
+  event.currentTarget.classList.add('active');
+
+  const now = new Date();
+  const thisMonthPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  if (type === 'upload') {
+    const rows = state.channels
+      .filter(ch => ch.active !== false && ch.lastUpload)
+      .map(ch => {
+        const pm = PLATFORM_META[ch.platform] || PLATFORM_META.custom;
+        const next = nextUploadDate(ch.lastUpload, ch.freq, ch.freqType, ch);
+        const days = next ? diffDays(next) : null;
+        return { name: ch.name || pm.label, icon: pm.icon, next, days };
+      })
+      .filter(r => r.next)
+      .sort((a, b) => a.days - b.days);
+
+    content.innerHTML = rows.length
+      ? rows.map(r => `<div class="banner-row"><span class="banner-row-label">${r.icon} ${r.name}</span><span class="banner-row-val">${formatDate(r.next)} · D-${Math.max(0,r.days)}</span></div>`).join('')
+      : '<div style="opacity:0.7">등록된 채널 없음</div>';
+
+  } else if (type === 'urgent') {
+    const events = [];
+    state.aiSubs.forEach(s => {
+      if (!s.billingDay) return;
+      const next = nextBillingDate(s.billingDay);
+      const days = diffDays(next);
+      if (days <= 7) events.push({ name: `🤖 ${s.service} ${s.plan}`, date: next, days });
+    });
+    state.domains.forEach(d => {
+      if (!d.renewalDate) return;
+      const days = diffDays(d.renewalDate);
+      if (days <= 7) events.push({ name: `🌐 ${d.domain}`, date: d.renewalDate, days });
+    });
+    events.sort((a, b) => a.days - b.days);
+
+    content.innerHTML = events.length
+      ? events.map(e => `<div class="banner-row"><span class="banner-row-label">${e.name}</span><span class="banner-row-val">${formatDate(e.date)} · D-${e.days}</span></div>`).join('')
+      : '<div style="opacity:0.7">D-7 이내 이벤트 없음 ✅</div>';
+
+  } else if (type === 'income') {
+    const filtered = state.income.filter(i => i.date && i.date.startsWith(thisMonthPrefix));
+    const byType = {};
+    filtered.forEach(i => {
+      const krw = toKrw(i.amount, i.currency);
+      if (!byType[i.type]) byType[i.type] = 0;
+      byType[i.type] += krw;
+    });
+    const total = Object.values(byType).reduce((s, v) => s + v, 0);
+
+    content.innerHTML = Object.keys(byType).length
+      ? Object.entries(byType).map(([t, krw]) => {
+          const m = INCOME_META[t] || INCOME_META.other;
+          return `<div class="banner-row"><span class="banner-row-label">${m.icon} ${m.label}</span><span class="banner-row-val">₩${Math.round(krw).toLocaleString()}</span></div>`;
+        }).join('') + `<div class="banner-row" style="margin-top:4px;border-top:1px solid rgba(74,222,128,0.15);padding-top:8px;"><span class="banner-row-label">합계</span><span class="banner-row-val">₩${Math.round(total).toLocaleString()}</span></div>`
+      : '<div style="opacity:0.7">이번 달 수입 없음</div>';
+
+  } else if (type === 'cost') {
+    const aiTotal = state.aiSubs.reduce((s, x) => s + toKrw(x.amount||0, x.currency), 0);
+    const subTotal = state.otherSubs.reduce((s, x) => s + (x.billingCycle==='yearly' ? toKrw(x.amount||0,x.currency)/12 : toKrw(x.amount||0,x.currency)), 0);
+    const domainTotal = state.domains.reduce((s, x) => s + toKrw(x.amount||0, x.currency)/12, 0);
+    const total = aiTotal + subTotal + domainTotal;
+
+    const rows = [
+      { label: '🤖 AI 구독', val: aiTotal },
+      { label: '💸 기타 구독', val: subTotal },
+      { label: '🌐 도메인/호스팅 (월할)', val: domainTotal },
+    ].filter(r => r.val > 0);
+
+    content.innerHTML = rows.length
+      ? rows.map(r => `<div class="banner-row"><span class="banner-row-label">${r.label}</span><span class="banner-row-val">₩${Math.round(r.val).toLocaleString()}</span></div>`).join('')
+        + `<div class="banner-row" style="margin-top:4px;border-top:1px solid rgba(74,222,128,0.15);padding-top:8px;"><span class="banner-row-label">합계</span><span class="banner-row-val">₩${Math.round(total).toLocaleString()}</span></div>`
+      : '<div style="opacity:0.7">등록된 지출 없음</div>';
+  }
+}
+
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let calSelected = null;
+
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } calSelected = null; renderCalendar(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } calSelected = null; renderCalendar(); }
+
+function buildEventMap() {
+  const map = {}; // 'YYYY-MM-DD' -> [{type, label, icon}]
+  const add = (date, ev) => { if (!date) return; if (!map[date]) map[date] = []; map[date].push(ev); };
+
+  state.aiSubs.forEach(s => {
+    if (!s.billingDay) return;
+    // show next 3 months of billing dates
+    for (let m = -1; m <= 2; m++) {
+      let yr = calYear, mo = calMonth + m;
+      if (mo < 0) { mo += 12; yr--; } else if (mo > 11) { mo -= 12; yr++; }
+      const day = Math.min(s.billingDay, new Date(yr, mo + 1, 0).getDate());
+      const date = `${yr}-${String(mo+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      add(date, { type: 'ai', label: `${s.service} ${s.plan} 결제`, icon: '🤖', color: 'var(--accent)' });
+    }
+  });
+
+  state.domains.forEach(d => {
+    if (!d.renewalDate) return;
+    add(d.renewalDate, { type: 'domain', label: `${d.domain} 갱신`, icon: '🌐', color: 'var(--red)' });
+  });
+
+  // 세금 주요 납부일 (종소세, 중간예납, 부가세)
+  const yr = calYear;
+  const taxEvents = [
+    { date: `${yr}-05-31`, label: '종합소득세 납부', icon: '⚡' },
+    { date: `${yr}-11-30`, label: '중간예납', icon: '⚡' },
+  ];
+  if (state.tax && state.tax.vatApplicable) {
+    taxEvents.push({ date: `${yr}-01-25`, label: '부가세 납부', icon: '🧾' });
+    taxEvents.push({ date: `${yr}-07-25`, label: '부가세 납부', icon: '🧾' });
+  }
+  taxEvents.forEach(e => add(e.date, { type: 'tax', label: e.label, icon: e.icon, color: 'var(--yellow)' }));
+
+  state.channels.forEach(ch => {
+    if (!ch.lastUpload || ch.active === false) return;
+    // project next 4 upload dates
+    let last = ch.lastUpload;
+    for (let i = 0; i < 4; i++) {
+      const next = nextUploadDate(last, ch.freq, ch.freqType, ch);
+      if (!next) break;
+      const pm = PLATFORM_META[ch.platform] || PLATFORM_META.custom;
+      add(next, { type: 'upload', label: `${ch.name || pm.label} 업로드`, icon: pm.icon, color: 'var(--green)' });
+      last = next;
+    }
+  });
+
+  return map;
+}
+
+function renderCalendar() {
+  const WEEKDAYS = ['일','월','화','수','목','금','토'];
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('cal-title').textContent = `${calYear}년 ${monthNames[calMonth]}`;
+
+  const eventMap = buildEventMap();
+  const todayStr = today();
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const daysInPrevMonth = new Date(calYear, calMonth, 0).getDate();
+
+  let html = WEEKDAYS.map(d => `<div class="cal-weekday">${d}</div>`).join('');
+
+  // prev month padding
+  for (let i = firstDay - 1; i >= 0; i--) {
+    html += `<div class="cal-cell other-month"><div class="cal-num">${daysInPrevMonth - i}</div></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const evs = eventMap[dateStr] || [];
+    const isToday = dateStr === todayStr;
+    const isSelected = dateStr === calSelected;
+    const dots = evs.map(e => `<span class="cal-dot" style="background:${e.color}"></span>`).join('');
+    html += `<div class="cal-cell${isToday?' today':''}${isSelected?' selected':''}" onclick="calSelect('${dateStr}')">
+      <div class="cal-num">${d}</div>
+      ${dots ? `<div class="cal-dots">${dots}</div>` : ''}
+    </div>`;
+  }
+
+  // next month padding
+  const totalCells = firstDay + daysInMonth;
+  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let d = 1; d <= remaining; d++) {
+    html += `<div class="cal-cell other-month"><div class="cal-num">${d}</div></div>`;
+  }
+
+  document.getElementById('cal-grid').innerHTML = html;
+
+  if (calSelected) {
+    const evs = eventMap[calSelected] || [];
+    const detail = document.getElementById('cal-detail');
+    if (evs.length === 0) {
+      detail.style.display = 'none';
+    } else {
+      const [y, m, d] = calSelected.split('-');
+      detail.style.display = 'block';
+      detail.innerHTML = `<div class="cal-detail-title">${parseInt(m)}월 ${parseInt(d)}일 일정</div>` +
+        evs.map(e => `<div class="cal-detail-item"><span>${e.icon}</span><span>${e.label}</span></div>`).join('');
+    }
+  } else {
+    document.getElementById('cal-detail').style.display = 'none';
+  }
+}
+
+function calSelect(dateStr) {
+  calSelected = calSelected === dateStr ? null : dateStr;
+  renderCalendar();
+}
+
+// ========================
+// RENDER DASHBOARD
+// ========================
+function renderDashboard() {
+  renderCalendar();
+  const now = new Date();
+  const weekdays = ['일','월','화','수','목','금','토'];
+  document.getElementById('dash-date').textContent =
+    `${now.getFullYear()}년 ${now.getMonth()+1}월 ${now.getDate()}일 (${weekdays[now.getDay()]})`;
+
+  // Monthly cost (AI + 기타구독 + 도메인 월할)
+  let monthlyCost = 0;
+  state.aiSubs.forEach(s => { monthlyCost += toKrw(s.amount || 0, s.currency); });
+  state.otherSubs.forEach(s => {
+    monthlyCost += s.billingCycle === 'yearly' ? toKrw(s.amount || 0, s.currency) / 12 : toKrw(s.amount || 0, s.currency);
+  });
+  state.domains.forEach(d => { monthlyCost += toKrw(d.amount || 0, d.currency) / 12; });
+  document.getElementById('dash-monthly-cost').textContent =
+    monthlyCost > 0 ? `₩${Math.round(monthlyCost).toLocaleString()}` : '₩0';
+
+  // Monthly income (이번 달)
+  const thisMonthPrefix = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  let monthlyIncome = 0;
+  state.income.forEach(i => {
+    if (i.date && i.date.startsWith(thisMonthPrefix)) monthlyIncome += toKrw(i.amount || 0, i.currency);
+  });
+  document.getElementById('dash-monthly-income').textContent =
+    monthlyIncome > 0 ? `₩${Math.round(monthlyIncome).toLocaleString()}` : '₩0';
+
+  // Build alert events
+  const events = [];
+
+  state.aiSubs.forEach(s => {
+    if (!s.billingDay) return;
+    const next = nextBillingDate(s.billingDay);
+    const days = diffDays(next);
+    if (days <= 14) {
+      events.push({ name: s.service, detail: `${s.plan} · ${formatAmt(s.amount, s.currency)}`, date: next, days, type: 'ai' });
+    }
+  });
+
+  state.domains.forEach(d => {
+    if (!d.renewalDate) return;
+    const days = diffDays(d.renewalDate);
+    if (days <= 30) {
+      events.push({ name: d.domain, detail: `${d.registrar || ''} · ${formatAmt(d.amount, d.currency)}/년`, date: d.renewalDate, days, type: 'domain' });
+    }
+  });
+
+  events.sort((a, b) => a.days - b.days);
+
+  document.getElementById('dash-urgent-count').textContent = events.filter(e => e.days <= 7).length;
+
+  const alertEl = document.getElementById('dash-alerts');
+  if (events.length === 0) {
+    alertEl.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>D-14 이내 임박한 일정이 없습니다</p></div>`;
+  } else {
+    alertEl.innerHTML = events.map(e => {
+      const cls = e.days <= 3 ? 'urgent' : e.days <= 7 ? 'warn' : 'ok';
+      const icon = e.type === 'ai' ? '🤖' : '🌐';
+      return `<div class="alert-item ${cls}">
+        <div class="alert-item-left">
+          <div class="alert-item-name">${icon} ${e.name}</div>
+          <div class="alert-item-meta">${e.detail} · ${formatDate(e.date)}</div>
+        </div>
+        ${ddayBadge(e.days)}
+      </div>`;
+    }).join('');
+  }
+
+  // Upload schedule this week
+  const uploads = [];
+  const weekStart = new Date(now);
+  weekStart.setDate(now.getDate() - now.getDay());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  state.channels.forEach(ch => {
+    if (!ch.lastUpload || ch.active === false) return;
+    const next = nextUploadDate(ch.lastUpload, ch.freq, ch.freqType, ch);
+    if (!next) return;
+    const days = diffDays(next);
+    const pm = PLATFORM_META[ch.platform] || PLATFORM_META.custom;
+    uploads.push({ name: ch.name || pm.label, platform: pm, next, days });
+  });
+
+  document.getElementById('dash-upload-today').textContent = uploads.length;
+
+  const uploadEl = document.getElementById('dash-uploads');
+  if (uploads.length === 0) {
+    uploadEl.innerHTML = `<div class="empty-state"><div class="icon">📅</div><p>등록된 채널 일정이 없습니다</p></div>`;
+  } else {
+    uploads.sort((a, b) => a.days - b.days);
+    uploadEl.innerHTML = uploads.map(u => {
+      const cls = u.days <= 0 ? 'urgent' : u.days <= 3 ? 'warn' : 'ok';
+      return `<div class="alert-item ${cls}">
+        <div class="alert-item-left">
+          <div class="alert-item-name">${u.platform.icon} ${u.name}</div>
+          <div class="alert-item-meta">다음 업로드 · ${formatDate(u.next)}</div>
+        </div>
+        ${ddayBadge(Math.max(0, u.days))}
+      </div>`;
+    }).join('');
+  }
+}
+
+// ========================
+// RENDER AI SUBS
+// ========================
+function renderAiSubs() {
+  const list = document.getElementById('ai-list');
+
+  if (state.aiSubs.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">🤖</div><p>AI 구독을 추가해보세요</p></div>`;
+    document.getElementById('ai-summary-card').style.display = 'none';
+    document.getElementById('ai-total-display').textContent = '구독 없음';
+    return;
+  }
+
+  let totalKrw = 0;
+  let summaryRows = '';
+  state.aiSubs.forEach(s => {
+    const krw = toKrw(s.amount || 0, s.currency);
+    totalKrw += krw;
+  });
+
+  // Summary
+  const summaryCard = document.getElementById('ai-summary-card');
+  summaryCard.style.display = 'block';
+  let rowsHtml = state.aiSubs.map(s => {
+    const krw = toKrw(s.amount || 0, s.currency);
+    return `<div class="summary-row">
+      <span>${s.service} <span class="tag tag-gray">${s.plan}</span></span>
+      <span>${formatAmt(s.amount, s.currency)}${s.currency==='USD'?' ≈ ₩'+Math.round(krw).toLocaleString():''}</span>
+    </div>`;
+  }).join('');
+  rowsHtml += `<div class="summary-row summary-total"><span>월 합계</span><span>₩${Math.round(totalKrw).toLocaleString()}</span></div>`;
+  document.getElementById('ai-summary-rows').innerHTML = rowsHtml;
+  document.getElementById('ai-total-display').textContent = `월 합계 ₩${Math.round(totalKrw).toLocaleString()}`;
+
+  list.innerHTML = state.aiSubs.map(s => {
+    const meta = SERVICE_ICONS[s.service] || SERVICE_ICONS['default'];
+    const next = s.billingDay ? nextBillingDate(s.billingDay) : null;
+    const daysToNext = next ? diffDays(next) : null;
+    const duration = durationLabel(s.startDate);
+    const histCount = (s.history || []).length;
+
+    let histHtml = '';
+    if (s.history && s.history.length > 0) {
+      const latest = s.history[s.history.length - 1];
+      histHtml = `<div class="history-list">
+        <div class="history-item">
+          <div class="history-dot"></div>
+          <span>${formatDate(latest.date)} — ${latest.plan} ${formatAmt(latest.amount, latest.currency)}${latest.memo ? ' · ' + latest.memo : ''}</span>
+        </div>
+      </div>`;
+    }
+
+    return `<div class="sub-item">
+      <div class="sub-item-header">
+        <div class="sub-item-left">
+          <div class="sub-icon" style="background:${meta.bg}; font-size:18px; width:38px; height:38px;">${meta.icon}</div>
+          <div class="sub-info">
+            <div class="sub-name">${s.service}</div>
+            <div class="sub-plan">${s.plan}${duration ? ' · ' + duration : ''}</div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="sub-amount">${formatAmt(s.amount, s.currency)}<span class="sub-currency">/월</span></div>
+          ${daysToNext !== null ? ddayBadge(daysToNext) : ''}
+        </div>
+      </div>
+      <div class="sub-meta">
+        ${s.billingDay ? `<div class="sub-meta-item">결제일 <span>매월 ${s.billingDay}일</span></div>` : ''}
+        ${next ? `<div class="sub-meta-item">다음 결제 <span>${formatDate(next)}</span></div>` : ''}
+        ${s.card ? `<div class="sub-meta-item">카드 <span>${s.card}</span></div>` : ''}
+        ${s.startDate ? `<div class="sub-meta-item">시작 <span>${formatDate(s.startDate)}</span></div>` : ''}
+        ${histCount > 0 ? `<div class="sub-meta-item">변경이력 <span>${histCount}건</span></div>` : ''}
+      </div>
+      ${histHtml}
+      <div style="display:flex; gap:6px; margin-top:12px; flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="openPlanChangeModal('${s.id}')">플랜 변경 기록</button>
+        ${histCount > 0 ? `<button class="btn btn-ghost btn-sm" onclick="openHistoryModal('${s.id}')">이력 보기 (${histCount})</button>` : ''}
+        <button class="btn btn-ghost btn-sm" onclick="editAiSub('${s.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAiSub('${s.id}')">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ========================
+// RENDER CHANNELS
+// ========================
+function toggleChannel(id) {
+  const ch = state.channels.find(x => x.id === id);
+  if (ch) { ch.active = !ch.active; saveState(); renderAll(); }
+}
+
+function renderChannels() {
+  const list = document.getElementById('channel-list');
+  if (state.channels.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">📺</div><p>채널을 추가해보세요</p></div>`;
+    return;
+  }
+
+  list.innerHTML = state.channels.map(ch => {
+    const pm = PLATFORM_META[ch.platform] || PLATFORM_META.custom;
+    const isActive = ch.active !== false;
+    const next = isActive ? nextUploadDate(ch.lastUpload, ch.freq, ch.freqType, ch) : null;
+    const days = next ? diffDays(next) : null;
+    const WEEKDAY_NAMES = ['일','월','화','수','목','금','토'];
+    let freqLabel;
+    if (ch.scheduleType === 'weekly' && ch.weekDays && ch.weekDays.length) {
+      freqLabel = '매주 ' + ch.weekDays.slice().sort((a,b)=>a-b).map(d => WEEKDAY_NAMES[d]).join('·');
+    } else if (ch.scheduleType === 'monthly' && ch.monthDates && ch.monthDates.length) {
+      freqLabel = '매월 ' + ch.monthDates.slice().sort((a,b)=>a-b).join('·') + '일';
+    } else {
+      freqLabel = ch.freqType === 'week' ? `주 ${ch.freq}회` : `월 ${ch.freq}회`;
+    }
+
+    return `<div class="ch-item" style="opacity:${isActive ? 1 : 0.45}">
+      <div class="ch-icon" style="background:${pm.bg}">${pm.icon}</div>
+      <div class="ch-info">
+        <div class="ch-name" style="display:flex;align-items:center;gap:8px;">
+          ${ch.name || pm.label}
+          ${!isActive ? '<span class="tag tag-gray">일시정지</span>' : ''}
+        </div>
+        <div class="ch-freq">${freqLabel} · 마지막 ${formatDate(ch.lastUpload)}</div>
+      </div>
+      <div class="ch-right">
+        ${isActive && next ? `<div class="ch-next">
+          <div class="ch-next-date">${formatDate(next)}</div>
+          <div class="ch-next-label">다음 업로드 예정</div>
+        </div>` : ''}
+        ${isActive && days !== null ? ddayBadge(days) : ''}
+        <label class="toggle-switch" title="${isActive ? '채널 끄기' : '채널 켜기'}">
+          <input type="checkbox" ${isActive ? 'checked' : ''} onchange="toggleChannel('${ch.id}')">
+          <span class="toggle-slider"></span>
+        </label>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-primary btn-sm" onclick="markUploadedToday('${ch.id}')" title="오늘 업로드함">✓ 오늘</button>
+          <button class="btn btn-ghost btn-sm" onclick="editChannel('${ch.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteChannel('${ch.id}')">삭제</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ========================
+// RENDER DOMAINS
+// ========================
+function renderDomains() {
+  const list = document.getElementById('domain-list');
+  if (state.domains.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">🌐</div><p>도메인이나 호스팅을 추가해보세요</p></div>`;
+    document.getElementById('domain-total-display').textContent = '등록 없음';
+    return;
+  }
+
+  let totalKrw = 0;
+  state.domains.forEach(d => totalKrw += toKrw(d.amount || 0, d.currency));
+  document.getElementById('domain-total-display').textContent =
+    `연간 총 ₩${Math.round(totalKrw).toLocaleString()}`;
+
+  const typeLabel = { domain: '도메인', hosting: '호스팅', cdn: 'CDN' };
+  const typeIcon = { domain: '🌐', hosting: '🖥️', cdn: '⚡' };
+
+  list.innerHTML = state.domains.map(d => {
+    const days = d.renewalDate ? diffDays(d.renewalDate) : null;
+    return `<div class="domain-item">
+      <div class="domain-item-header">
+        <div>
+          <div class="domain-name">${typeIcon[d.type] || '🌐'} ${d.domain}</div>
+          <div class="domain-registrar">${typeLabel[d.type] || d.type} · ${d.registrar || '—'}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-weight:700; font-size:15px;">${formatAmt(d.amount, d.currency)}<span style="font-size:11px;color:var(--text2)">/년</span></div>
+          ${days !== null ? ddayBadge(days) : ''}
+        </div>
+      </div>
+      <div class="domain-meta">
+        ${d.renewalDate ? `<div class="domain-meta-item">갱신일 <span>${formatDate(d.renewalDate)}</span></div>` : ''}
+        ${d.card ? `<div class="domain-meta-item">카드 <span>····${d.card}</span></div>` : ''}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:12px;">
+        <button class="btn btn-ghost btn-sm" onclick="editDomain('${d.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteDomain('${d.id}')">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ========================
+// CATEGORY META
+// ========================
+const CAT_META = {
+  design:       { label: '디자인툴',       color: '#a78bfa', bg: '#1e1530' },
+  productivity: { label: '생산성',         color: '#fbbf24', bg: '#1f1a0e' },
+  storage:      { label: '스토리지',       color: '#60a5fa', bg: '#111e2e' },
+  marketing:    { label: '마케팅',         color: '#f472b6', bg: '#27102a' },
+  saas:         { label: '기타 SaaS',      color: '#4ade80', bg: '#162a1c' },
+  other:        { label: '기타',           color: '#94a3b8', bg: '#1a1f26' },
+};
+
+const INCOME_META = {
+  adsense:   { label: '애드센스',      icon: '📊' },
+  youtube:   { label: '유튜브 수익',   icon: '📺' },
+  writing:   { label: '원고료',        icon: '✍️' },
+  brand:     { label: '브랜드딜',      icon: '🤝' },
+  affiliate: { label: '제휴 수익',     icon: '🔗' },
+  product:   { label: '디지털 상품',   icon: '📦' },
+  freelance: { label: '프리랜서',      icon: '💼' },
+  other:     { label: '기타',          icon: '💰' },
+};
+
+// ========================
+// RENDER 기타 구독
+// ========================
+let editingSubId = null;
+
+function renderOtherSubs() {
+  const list = document.getElementById('subs-list');
+  const summaryCard = document.getElementById('subs-summary-card');
+
+  if (!state.otherSubs.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">💸</div><p>Figma, Notion 등 기타 구독을 추가해보세요</p></div>`;
+    summaryCard.style.display = 'none';
+    document.getElementById('subs-total-display').textContent = '구독 없음';
+    return;
+  }
+
+  // 카테고리별 집계
+  const bycat = {};
+  let totalKrw = 0;
+  state.otherSubs.forEach(s => {
+    const monthly = s.billingCycle === 'yearly' ? toKrw(s.amount, s.currency) / 12 : toKrw(s.amount, s.currency);
+    totalKrw += monthly;
+    if (!bycat[s.category]) bycat[s.category] = 0;
+    bycat[s.category] += monthly;
+  });
+
+  summaryCard.style.display = 'block';
+  document.getElementById('subs-total-display').textContent = `월 합계 ₩${Math.round(totalKrw).toLocaleString()}`;
+
+  let rowsHtml = Object.entries(bycat).map(([cat, krw]) => {
+    const m = CAT_META[cat] || CAT_META.other;
+    return `<div class="summary-row"><span><span class="cat-badge" style="background:${m.bg};color:${m.color}">${m.label}</span></span><span>₩${Math.round(krw).toLocaleString()}/월</span></div>`;
+  }).join('');
+  rowsHtml += `<div class="summary-row summary-total"><span>월 합계</span><span>₩${Math.round(totalKrw).toLocaleString()}</span></div>`;
+  document.getElementById('subs-summary-rows').innerHTML = rowsHtml;
+
+  list.innerHTML = state.otherSubs.map(s => {
+    const m = CAT_META[s.category] || CAT_META.other;
+    const monthly = s.billingCycle === 'yearly' ? toKrw(s.amount, s.currency) / 12 : toKrw(s.amount, s.currency);
+    const next = s.billingDay ? nextBillingDate(s.billingDay) : null;
+    const days = next ? diffDays(next) : null;
+    const cycleLabel = s.billingCycle === 'yearly' ? '연간' : '월간';
+    return `<div class="sub-item">
+      <div class="sub-item-header">
+        <div class="sub-item-left">
+          <div class="sub-icon" style="background:${m.bg};color:${m.color};font-size:15px;font-weight:700;width:38px;height:38px;">${m.label.slice(0,2)}</div>
+          <div class="sub-info">
+            <div class="sub-name">${s.name}${s.plan ? ` <span style="font-weight:400;color:var(--text2);font-size:12px;">${s.plan}</span>` : ''}</div>
+            <div class="sub-plan"><span class="cat-badge" style="background:${m.bg};color:${m.color}">${m.label}</span></div>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="sub-amount">${formatAmt(s.amount, s.currency)}<span class="sub-currency">/${cycleLabel === '연간' ? '년' : '월'}</span></div>
+          ${s.billingCycle === 'yearly' ? `<div style="font-size:11px;color:var(--text2);">≈ ₩${Math.round(monthly).toLocaleString()}/월</div>` : ''}
+          ${days !== null ? ddayBadge(days) : ''}
+        </div>
+      </div>
+      <div class="sub-meta">
+        ${s.billingDay ? `<div class="sub-meta-item">결제일 <span>매월 ${s.billingDay}일</span></div>` : ''}
+        ${next ? `<div class="sub-meta-item">다음 결제 <span>${formatDate(next)}</span></div>` : ''}
+        ${s.card ? `<div class="sub-meta-item">카드 <span>${s.card}</span></div>` : ''}
+        ${s.startDate ? `<div class="sub-meta-item">시작 <span>${formatDate(s.startDate)}</span></div>` : ''}
+      </div>
+      <div style="display:flex;gap:6px;margin-top:12px;">
+        <button class="btn btn-ghost btn-sm" onclick="editSub('${s.id}')">수정</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSub('${s.id}')">삭제</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openSubModal(id) {
+  editingSubId = id || null;
+  const s = id ? state.otherSubs.find(x => x.id === id) : null;
+  document.getElementById('sub-modal-title').textContent = s ? '구독 수정' : '기타 구독 추가';
+  document.getElementById('sub-name').value = s ? s.name : '';
+  document.getElementById('sub-category').value = s ? s.category : 'design';
+  document.getElementById('sub-plan').value = s ? s.plan : '';
+  document.getElementById('sub-amount').value = s ? s.amount : '';
+  document.getElementById('sub-currency').value = s ? s.currency : 'USD';
+  document.getElementById('sub-billing-cycle').value = s ? s.billingCycle : 'monthly';
+  document.getElementById('sub-billing-day').value = s ? s.billingDay : '';
+  document.getElementById('sub-card').value = s ? s.card : '';
+  document.getElementById('sub-start-date').value = s ? s.startDate : today();
+  openModal('sub-modal');
+}
+
+function editSub(id) { openSubModal(id); }
+
+function saveSub() {
+  const name = document.getElementById('sub-name').value.trim();
+  if (!name) return alert('서비스명을 입력하세요');
+  const data = {
+    name,
+    category: document.getElementById('sub-category').value,
+    plan: document.getElementById('sub-plan').value.trim(),
+    amount: parseFloat(document.getElementById('sub-amount').value) || 0,
+    currency: document.getElementById('sub-currency').value,
+    billingCycle: document.getElementById('sub-billing-cycle').value,
+    billingDay: parseInt(document.getElementById('sub-billing-day').value) || null,
+    card: document.getElementById('sub-card').value.trim(),
+    startDate: document.getElementById('sub-start-date').value,
+  };
+  if (editingSubId) {
+    Object.assign(state.otherSubs.find(x => x.id === editingSubId), data);
+  } else {
+    state.otherSubs.push({ id: genId(), ...data });
+  }
+  saveState(); closeModal('sub-modal'); renderAll();
+}
+
+function deleteSub(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  state.otherSubs = state.otherSubs.filter(x => x.id !== id);
+  saveState(); renderAll();
+}
+
+// ========================
+// RENDER 수입
+// ========================
+let editingIncomeId = null;
+let incomeYear = new Date().getFullYear();
+let incomeMonth = new Date().getMonth();
+
+function incomeNavPrev() { incomeMonth--; if (incomeMonth < 0) { incomeMonth = 11; incomeYear--; } renderIncome(); }
+function incomeNavNext() { incomeMonth++; if (incomeMonth > 11) { incomeMonth = 0; incomeYear++; } renderIncome(); }
+
+function renderIncome() {
+  const monthNames = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  document.getElementById('income-month-label').textContent = `${incomeYear}년 ${monthNames[incomeMonth]}`;
+  document.getElementById('income-period-label').textContent = `${incomeYear}년 ${monthNames[incomeMonth]} 수입`;
+
+  const prefix = `${incomeYear}-${String(incomeMonth+1).padStart(2,'0')}`;
+  const filtered = state.income.filter(i => i.date && i.date.startsWith(prefix));
+  filtered.sort((a, b) => b.date.localeCompare(a.date));
+
+  // summary
+  let totalKrw = 0;
+  const byType = {};
+  filtered.forEach(i => {
+    const krw = toKrw(i.amount, i.currency);
+    totalKrw += krw;
+    if (!byType[i.type]) byType[i.type] = 0;
+    byType[i.type] += krw;
+  });
+
+  // tax savings recommendation
+  const rate = state.tax.savingsRate || 30;
+  const recommended = Math.round(totalKrw * rate / 100);
+
+  const summaryEl = document.getElementById('income-summary');
+  if (!filtered.length) {
+    summaryEl.innerHTML = `<div style="color:var(--text2);font-size:13px;">이번 달 수입 없음</div>`;
+  } else {
+    let html = Object.entries(byType).map(([type, krw]) => {
+      const m = INCOME_META[type] || INCOME_META.other;
+      return `<div class="summary-row"><span>${m.icon} ${m.label}</span><span>₩${Math.round(krw).toLocaleString()}</span></div>`;
+    }).join('');
+    html += `<div class="summary-row summary-total"><span>합계</span><span style="color:var(--green)">₩${Math.round(totalKrw).toLocaleString()}</span></div>`;
+    html += `<div style="margin-top:10px;padding:10px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:var(--radius-xs);font-size:12px;color:var(--yellow);">
+      💡 세금 적립 권장 (${rate}%): <strong>₩${recommended.toLocaleString()}</strong>
+    </div>`;
+    summaryEl.innerHTML = html;
+  }
+
+  const list = document.getElementById('income-list');
+  if (!filtered.length) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">💰</div><p>이번 달 수입을 추가해보세요</p></div>`;
+    return;
+  }
+  list.innerHTML = filtered.map(i => {
+    const m = INCOME_META[i.type] || INCOME_META.other;
+    const krw = toKrw(i.amount, i.currency);
+    return `<div class="income-item">
+      <div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span class="income-type-badge">${m.icon} ${m.label}</span>
+          ${i.memo ? `<span style="font-size:13px;font-weight:600;">${i.memo}</span>` : ''}
+        </div>
+        <div class="income-meta">
+          ${formatDate(i.date)}${i.paidDate ? ` · 입금 ${formatDate(i.paidDate)}` : ''}
+        </div>
+      </div>
+      <div style="text-align:right;">
+        <div class="income-amount">${formatAmt(i.amount, i.currency)}</div>
+        ${i.currency === 'USD' ? `<div style="font-size:11px;color:var(--text2);">≈ ₩${Math.round(krw).toLocaleString()}</div>` : ''}
+        <div style="display:flex;gap:4px;margin-top:6px;justify-content:flex-end;">
+          <button class="btn btn-ghost btn-sm" onclick="editIncome('${i.id}')">수정</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteIncome('${i.id}')">삭제</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openIncomeModal(id) {
+  editingIncomeId = id || null;
+  const i = id ? state.income.find(x => x.id === id) : null;
+  document.getElementById('income-modal-title').textContent = i ? '수입 수정' : '수입 추가';
+  document.getElementById('inc-type').value = i ? i.type : 'adsense';
+  document.getElementById('inc-memo').value = i ? i.memo : '';
+  document.getElementById('inc-amount').value = i ? i.amount : '';
+  document.getElementById('inc-currency').value = i ? i.currency : 'KRW';
+  document.getElementById('inc-date').value = i ? i.date : today();
+  document.getElementById('inc-paid-date').value = i ? i.paidDate : '';
+  openModal('income-modal');
+}
+
+function editIncome(id) { openIncomeModal(id); }
+
+function saveIncome() {
+  const amount = parseFloat(document.getElementById('inc-amount').value);
+  if (!amount || amount <= 0) return alert('금액을 입력하세요');
+  const data = {
+    type: document.getElementById('inc-type').value,
+    memo: document.getElementById('inc-memo').value.trim(),
+    amount,
+    currency: document.getElementById('inc-currency').value,
+    date: document.getElementById('inc-date').value,
+    paidDate: document.getElementById('inc-paid-date').value,
+  };
+  if (editingIncomeId) {
+    Object.assign(state.income.find(x => x.id === editingIncomeId), data);
+  } else {
+    state.income.push({ id: genId(), ...data });
+  }
+  saveState(); closeModal('income-modal'); renderAll();
+}
+
+function deleteIncome(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  state.income = state.income.filter(x => x.id !== id);
+  saveState(); renderAll();
+}
+
+// ========================
+// RENDER 세금
+// ========================
+function saveTaxSettings() {
+  state.tax.healthInsurance = parseFloat(document.getElementById('tax-health').value) || 0;
+  state.tax.pension = parseFloat(document.getElementById('tax-pension').value) || 0;
+  state.tax.savingsRate = parseFloat(document.getElementById('tax-rate').value) || 30;
+  state.tax.vatApplicable = document.getElementById('tax-vat').value === 'yes';
+  state.tax.savedAmount = parseFloat(document.getElementById('tax-saved').value) || 0;
+  saveState();
+  renderTax();
+}
+
+function renderTax() {
+  // 설정값 복원
+  document.getElementById('tax-health').value = state.tax.healthInsurance || '';
+  document.getElementById('tax-pension').value = state.tax.pension || '';
+  document.getElementById('tax-rate').value = state.tax.savingsRate ?? 30;
+  document.getElementById('tax-vat').value = state.tax.vatApplicable ? 'yes' : 'no';
+  document.getElementById('tax-saved').value = state.tax.savedAmount || '';
+
+  // 이번 연도 총 수입
+  const yr = new Date().getFullYear();
+  const yearlyIncome = state.income
+    .filter(i => i.date && i.date.startsWith(String(yr)))
+    .reduce((s, i) => s + toKrw(i.amount, i.currency), 0);
+
+  const rate = state.tax.savingsRate || 30;
+  const recommended = Math.round(yearlyIncome * rate / 100);
+  const saved = state.tax.savedAmount || 0;
+  const pct = recommended > 0 ? Math.min(100, Math.round(saved / recommended * 100)) : 0;
+
+  document.getElementById('tax-savings-summary').innerHTML = `
+    <div class="summary-row"><span>${yr}년 총 수입</span><span>₩${Math.round(yearlyIncome).toLocaleString()}</span></div>
+    <div class="summary-row"><span>권장 적립액 (${rate}%)</span><span>₩${recommended.toLocaleString()}</span></div>
+    <div class="summary-row"><span>현재 적립액</span><span style="color:var(--green);font-weight:700;">₩${Number(saved).toLocaleString()}</span></div>
+    <div class="savings-bar"><div class="savings-fill" style="width:${pct}%"></div></div>
+    <div style="font-size:12px;color:var(--text2);margin-top:6px;">${pct}% 달성${recommended > saved ? ` · ₩${(recommended-saved).toLocaleString()} 더 적립 필요` : ' · 목표 달성 ✅'}</div>
+  `;
+
+  // 납부 캘린더
+  const now = new Date();
+  const nowMonth = now.getMonth() + 1;
+
+  const events = [
+    { month: 1,  name: '부가세 신고·납부', detail: '1월 1일~25일', type: 'vat', optional: true },
+    { month: 1,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 1,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 2,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 2,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 3,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 3,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 4,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 4,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 5,  name: '종합소득세 신고·납부', detail: '5월 31일까지', type: 'major' },
+    { month: 5,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 5,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 6,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 6,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 7,  name: '부가세 신고·납부', detail: '7월 1일~25일', type: 'vat', optional: true },
+    { month: 7,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 7,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 8,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 8,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 9,  name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 9,  name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 10, name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 10, name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 11, name: '종합소득세 중간예납', detail: '11월 30일까지', type: 'major' },
+    { month: 11, name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 11, name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+    { month: 12, name: '국민연금', detail: `월 ₩${(state.tax.pension||0).toLocaleString()}`, type: 'monthly' },
+    { month: 12, name: '건강보험료', detail: `월 ₩${(state.tax.healthInsurance||0).toLocaleString()}`, type: 'monthly' },
+  ];
+
+  // 부가세 해당없으면 제외
+  const filtered = events.filter(e => !(e.type === 'vat' && !state.tax.vatApplicable));
+
+  // 월별로 묶어서 표시 (monthly 중복은 한 번만)
+  const byMonth = {};
+  filtered.forEach(e => {
+    if (!byMonth[e.month]) byMonth[e.month] = [];
+    byMonth[e.month].push(e);
+  });
+
+  const monthNames = ['','1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const typeIcon = { major: '⚡', vat: '🧾', monthly: '📅' };
+  const typeColor = { major: 'var(--red)', vat: 'var(--yellow)', monthly: 'var(--text3)' };
+
+  let html = '';
+  Object.keys(byMonth).sort((a,b)=>a-b).forEach(m => {
+    const month = parseInt(m);
+    const diff = month - nowMonth;
+    const badgeCls = diff < 0 ? 'past' : diff === 0 ? 'urgent' : diff <= 1 ? 'soon' : '';
+    const evs = byMonth[m];
+    // 이번 달이면 상단에
+    html += `<div class="tax-event">
+      <div class="tax-month-badge ${badgeCls}">${monthNames[month]}</div>
+      <div class="tax-event-info">
+        ${evs.map(e => `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;">
+          <span style="font-size:13px;">${typeIcon[e.type]}</span>
+          <span style="font-size:13px;font-weight:${e.type==='major'?'700':'500'};color:${e.type==='major'?typeColor.major:e.type==='vat'?typeColor.vat:'var(--text)'};">${e.name}</span>
+          <span style="font-size:11px;color:var(--text2);">${e.detail}</span>
+        </div>`).join('')}
+      </div>
+      ${diff === 0 ? '<span class="dday dday-red">이번 달</span>' : diff === 1 ? '<span class="dday dday-yellow">다음 달</span>' : ''}
+    </div>`;
+  });
+
+  document.getElementById('tax-calendar').innerHTML = html;
+}
+
+// ========================
+// 오늘 업로드 완료
+// ========================
+function markUploadedToday(id) {
+  const ch = state.channels.find(x => x.id === id);
+  if (!ch) return;
+  ch.lastUpload = today();
+  saveState();
+  renderAll();
+}
+
+// ========================
+// 탭 알림 배지
+// ========================
+function updateTabBadges() {
+  // D-3 이내 항목 체크
+  const urgentAi = state.aiSubs.some(s => {
+    if (!s.billingDay) return false;
+    return diffDays(nextBillingDate(s.billingDay)) <= 3;
+  });
+  const urgentDomain = state.domains.some(d => d.renewalDate && diffDays(d.renewalDate) <= 3);
+  const urgentSub = state.otherSubs.some(s => {
+    if (!s.billingDay) return false;
+    return diffDays(nextBillingDate(s.billingDay)) <= 3;
+  });
+
+  // 이번 주 업로드 예정 채널
+  const hasUpload = state.channels.some(ch => {
+    if (ch.active === false || !ch.lastUpload) return false;
+    const next = nextUploadDate(ch.lastUpload, ch.freq, ch.freqType, ch);
+    return next && diffDays(next) <= 3;
+  });
+
+  const badges = {
+    'tab-channels': hasUpload,
+    'tab-ai':       urgentAi,
+    'tab-domains':  urgentDomain,
+    'tab-subs':     urgentSub,
+  };
+
+  Object.entries(badges).forEach(([id, hasAlert]) => {
+    const tab = document.getElementById(id);
+    if (!tab) return;
+    // 기존 배지 제거 후 필요하면 추가
+    tab.textContent = tab.textContent.replace(' 🔴', '');
+    if (hasAlert) tab.textContent += ' 🔴';
+  });
+}
+
+// ========================
+// JSON 백업 / 복원
+// ========================
+function exportData() {
+  const json = JSON.stringify(state, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `creator-dashboard-${dateStr}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.aiSubs && !imported.channels && !imported.domains) {
+        return alert('올바른 백업 파일이 아닙니다.');
+      }
+      if (!confirm('현재 데이터를 덮어씁니다. 계속할까요?')) return;
+      state = {
+        aiSubs:    imported.aiSubs    || [],
+        channels:  imported.channels  || [],
+        domains:   imported.domains   || [],
+        otherSubs: imported.otherSubs || [],
+        income:    imported.income    || [],
+        tax:       imported.tax       || { healthInsurance:0, pension:0, savingsRate:30, vatApplicable:false, savedAmount:0 },
+      };
+      saveState();
+      renderAll();
+      alert('복원 완료!');
+    } catch {
+      alert('파일을 읽을 수 없습니다.');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function renderAll() {
+  renderDashboard();
+  renderAiSubs();
+  renderChannels();
+  renderDomains();
+  renderOtherSubs();
+  renderIncome();
+  renderTax();
+  updateTabBadges();
+}
+
+// ========================
+// MODAL HELPERS
+// ========================
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.querySelectorAll('.modal-backdrop').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ========================
+// AI SUBS - MODAL
+// ========================
+function openAiModal(id) {
+  editingAiId = id || null;
+  const s = id ? state.aiSubs.find(x => x.id === id) : null;
+
+  document.getElementById('ai-modal-title').textContent = s ? 'AI 구독 수정' : 'AI 구독 추가';
+  document.getElementById('ai-service').value = s ? s.service : '';
+  document.getElementById('ai-custom-name').value = '';
+  document.getElementById('ai-custom-plan').value = '';
+  document.getElementById('ai-amount').value = s ? s.amount : '';
+  document.getElementById('ai-currency').value = s ? s.currency : 'USD';
+  document.getElementById('ai-billing-day').value = s ? s.billingDay : '';
+  document.getElementById('ai-start-date').value = s ? s.startDate : today();
+  document.getElementById('ai-card').value = s ? s.card : '';
+
+  if (s) {
+    document.getElementById('ai-custom-name-group').style.display = 'none';
+    document.getElementById('ai-custom-plan-group').style.display = 'none';
+    // populate plan dropdown
+    const plans = AI_PRESETS[s.service];
+    const planSel = document.getElementById('ai-plan');
+    if (plans) {
+      planSel.innerHTML = plans.map(p => `<option value="${p.plan}">${p.plan}</option>`).join('') + '<option value="custom">직접 입력</option>';
+      planSel.value = s.plan;
+    } else {
+      planSel.innerHTML = '<option value="custom">직접 입력</option>';
+      planSel.value = 'custom';
+      document.getElementById('ai-custom-plan-group').style.display = 'block';
+      document.getElementById('ai-custom-plan').value = s.plan;
+    }
+  } else {
+    document.getElementById('ai-plan').innerHTML = '<option value="">먼저 서비스를 선택하세요</option>';
+    document.getElementById('ai-custom-name-group').style.display = 'none';
+    document.getElementById('ai-custom-plan-group').style.display = 'none';
+  }
+
+  openModal('ai-modal');
+}
+
+function editAiSub(id) { openAiModal(id); }
+
+function onServiceChange() {
+  const val = document.getElementById('ai-service').value;
+  const customGroup = document.getElementById('ai-custom-name-group');
+  const planSel = document.getElementById('ai-plan');
+  const planCustomGroup = document.getElementById('ai-custom-plan-group');
+
+  if (val === 'custom' || val === '') {
+    customGroup.style.display = val === 'custom' ? 'block' : 'none';
+    planSel.innerHTML = '<option value="custom">직접 입력</option>';
+    planCustomGroup.style.display = 'block';
+  } else {
+    customGroup.style.display = 'none';
+    planCustomGroup.style.display = 'none';
+    const plans = AI_PRESETS[val];
+    planSel.innerHTML = plans.map(p => `<option value="${p.plan}">${p.plan}</option>`).join('') + '<option value="custom">직접 입력</option>';
+    onPlanChange();
+  }
+}
+
+function onPlanChange() {
+  const svc = document.getElementById('ai-service').value;
+  const plan = document.getElementById('ai-plan').value;
+  const customGroup = document.getElementById('ai-custom-plan-group');
+
+  if (plan === 'custom') {
+    customGroup.style.display = 'block';
+    return;
+  }
+  customGroup.style.display = 'none';
+
+  if (!svc || !AI_PRESETS[svc]) return;
+  const preset = AI_PRESETS[svc].find(p => p.plan === plan);
+  if (preset) {
+    document.getElementById('ai-amount').value = preset.amount;
+    document.getElementById('ai-currency').value = preset.currency;
+  }
+}
+
+function saveAiSub() {
+  const svcRaw = document.getElementById('ai-service').value;
+  const service = svcRaw === 'custom' ? document.getElementById('ai-custom-name').value.trim() : svcRaw;
+  const planRaw = document.getElementById('ai-plan').value;
+  const plan = planRaw === 'custom' ? document.getElementById('ai-custom-plan').value.trim() : planRaw;
+  const amount = parseFloat(document.getElementById('ai-amount').value) || 0;
+  const currency = document.getElementById('ai-currency').value;
+  const billingDay = parseInt(document.getElementById('ai-billing-day').value) || null;
+  const startDate = document.getElementById('ai-start-date').value;
+  const card = document.getElementById('ai-card').value.trim();
+
+  if (!service) return alert('서비스명을 입력하세요');
+  if (!plan) return alert('플랜을 입력하세요');
+
+  if (editingAiId) {
+    const s = state.aiSubs.find(x => x.id === editingAiId);
+    if (s) {
+      Object.assign(s, { service, plan, amount, currency, billingDay, startDate, card });
+    }
+  } else {
+    state.aiSubs.push({ id: genId(), service, plan, amount, currency, billingDay, startDate, card, history: [] });
+  }
+
+  saveState();
+  closeModal('ai-modal');
+  renderAll();
+}
+
+function deleteAiSub(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  state.aiSubs = state.aiSubs.filter(s => s.id !== id);
+  saveState();
+  renderAll();
+}
+
+// ========================
+// PLAN CHANGE
+// ========================
+function openPlanChangeModal(id) {
+  planChangeTargetId = id;
+  const s = state.aiSubs.find(x => x.id === id);
+  document.getElementById('plan-change-service-name').textContent = `${s.service} · 현재 플랜: ${s.plan} ${formatAmt(s.amount, s.currency)}`;
+  document.getElementById('pc-plan').value = '';
+  document.getElementById('pc-amount').value = '';
+  document.getElementById('pc-currency').value = s.currency;
+  document.getElementById('pc-date').value = today();
+  document.getElementById('pc-memo').value = '';
+  openModal('plan-modal');
+}
+
+function savePlanChange() {
+  const s = state.aiSubs.find(x => x.id === planChangeTargetId);
+  if (!s) return;
+  const plan = document.getElementById('pc-plan').value.trim();
+  const amount = parseFloat(document.getElementById('pc-amount').value) || 0;
+  const currency = document.getElementById('pc-currency').value;
+  const date = document.getElementById('pc-date').value;
+  const memo = document.getElementById('pc-memo').value.trim();
+
+  if (!plan) return alert('새 플랜명을 입력하세요');
+
+  // save history entry with OLD values
+  if (!s.history) s.history = [];
+  s.history.push({ date, plan, amount, currency, memo });
+
+  // update current
+  s.plan = plan;
+  s.amount = amount;
+  s.currency = currency;
+
+  saveState();
+  closeModal('plan-modal');
+  renderAll();
+}
+
+function openHistoryModal(id) {
+  const s = state.aiSubs.find(x => x.id === id);
+  document.getElementById('history-modal-title').textContent = `${s.service} 플랜 변경 이력`;
+  const hist = s.history || [];
+  document.getElementById('history-list-content').innerHTML = hist.length === 0
+    ? '<p style="color:var(--text2);font-size:13px;">이력 없음</p>'
+    : hist.slice().reverse().map(h => `
+      <div class="history-item" style="border-bottom:1px solid var(--border); padding:10px 0;">
+        <div class="history-dot"></div>
+        <div>
+          <div style="font-weight:600; font-size:13px;">${h.plan} — ${formatAmt(h.amount, h.currency)}</div>
+          <div style="font-size:12px;color:var(--text2);">${formatDate(h.date)}${h.memo ? ' · ' + h.memo : ''}</div>
+        </div>
+      </div>`).join('');
+  openModal('history-modal');
+}
+
+// ========================
+// CHANNELS
+// ========================
+let currentScheduleType = 'weekly';
+
+function setScheduleType(type) {
+  currentScheduleType = type;
+  document.getElementById('sch-weekly-btn').classList.toggle('active', type === 'weekly');
+  document.getElementById('sch-monthly-btn').classList.toggle('active', type === 'monthly');
+  document.getElementById('sch-weekly-group').style.display = type === 'weekly' ? 'block' : 'none';
+  document.getElementById('sch-monthly-group').style.display = type === 'monthly' ? 'block' : 'none';
+}
+
+function getCheckedWeekDays() {
+  return Array.from(document.querySelectorAll('.day-picker input:checked')).map(el => parseInt(el.value));
+}
+
+function openChannelModal(id) {
+  editingChannelId = id || null;
+  const ch = id ? state.channels.find(x => x.id === id) : null;
+  document.getElementById('channel-modal-title').textContent = ch ? '채널 수정' : '채널 추가';
+  document.getElementById('ch-platform').value = ch ? ch.platform : '';
+  document.getElementById('ch-name').value = ch ? ch.name : '';
+  document.getElementById('ch-last-upload').value = ch ? ch.lastUpload : today();
+  document.getElementById('ch-custom-group').style.display = ch && ch.platform === 'custom' ? 'block' : 'none';
+  document.getElementById('ch-custom-name').value = ch && ch.platform === 'custom' ? ch.name : '';
+
+  // 스케줄 타입 복원
+  const sType = ch ? (ch.scheduleType || 'weekly') : 'weekly';
+  setScheduleType(sType);
+
+  // 요일 체크박스 초기화
+  document.querySelectorAll('.day-picker input').forEach(el => {
+    el.checked = ch && ch.weekDays ? ch.weekDays.includes(parseInt(el.value)) : false;
+  });
+
+  // 월간 날짜
+  document.getElementById('ch-month-dates').value = ch && ch.monthDates ? ch.monthDates.join(', ') : '';
+
+  openModal('channel-modal');
+}
+
+document.getElementById('ch-platform').addEventListener('change', function() {
+  document.getElementById('ch-custom-group').style.display = this.value === 'custom' ? 'block' : 'none';
+});
+
+function editChannel(id) { openChannelModal(id); }
+
+function saveChannel() {
+  const platform = document.getElementById('ch-platform').value;
+  const lastUpload = document.getElementById('ch-last-upload').value;
+  let name = document.getElementById('ch-name').value.trim();
+  if (platform === 'custom') name = document.getElementById('ch-custom-name').value.trim();
+
+  if (!platform) return alert('플랫폼을 선택하세요');
+
+  let weekDays = [], monthDates = [];
+  if (currentScheduleType === 'weekly') {
+    weekDays = getCheckedWeekDays();
+    if (!weekDays.length) return alert('업로드 요일을 하나 이상 선택하세요');
+  } else {
+    const raw = document.getElementById('ch-month-dates').value;
+    monthDates = raw.split(',').map(s => parseInt(s.trim())).filter(n => n >= 1 && n <= 31);
+    if (!monthDates.length) return alert('업로드 날짜를 입력하세요');
+  }
+
+  const data = { platform, name, scheduleType: currentScheduleType, weekDays, monthDates, lastUpload };
+
+  if (editingChannelId) {
+    const ch = state.channels.find(x => x.id === editingChannelId);
+    if (ch) Object.assign(ch, data);
+  } else {
+    state.channels.push({ id: genId(), active: true, ...data });
+  }
+
+  saveState();
+  closeModal('channel-modal');
+  renderAll();
+}
+
+function deleteChannel(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  state.channels = state.channels.filter(c => c.id !== id);
+  saveState();
+  renderAll();
+}
+
+// ========================
+// DOMAINS
+// ========================
+function openDomainModal(id) {
+  editingDomainId = id || null;
+  const d = id ? state.domains.find(x => x.id === id) : null;
+  document.getElementById('domain-modal-title').textContent = d ? '수정' : '도메인 / 호스팅 추가';
+  document.getElementById('dm-domain').value = d ? d.domain : '';
+  setRegistrarValue(d ? d.registrar : '');
+  document.getElementById('dm-renewal').value = d ? d.renewalDate : '';
+  document.getElementById('dm-amount').value = d ? d.amount : '';
+  document.getElementById('dm-currency').value = d ? d.currency : 'KRW';
+  document.getElementById('dm-card').value = d ? d.card : '';
+  document.getElementById('dm-type').value = d ? d.type : 'domain';
+  openModal('domain-modal');
+}
+
+function editDomain(id) { openDomainModal(id); }
+
+function saveDomain() {
+  const domain = document.getElementById('dm-domain').value.trim();
+  const registrar = getRegistrarValue();
+  const renewalDate = document.getElementById('dm-renewal').value;
+  const amount = parseFloat(document.getElementById('dm-amount').value) || 0;
+  const currency = document.getElementById('dm-currency').value;
+  const card = document.getElementById('dm-card').value.trim();
+  const type = document.getElementById('dm-type').value;
+
+  if (!domain) return alert('도메인명을 입력하세요');
+
+  if (editingDomainId) {
+    const d = state.domains.find(x => x.id === editingDomainId);
+    if (d) Object.assign(d, { domain, registrar, renewalDate, amount, currency, card, type });
+  } else {
+    state.domains.push({ id: genId(), domain, registrar, renewalDate, amount, currency, card, type });
+  }
+
+  saveState();
+  closeModal('domain-modal');
+  renderAll();
+}
+
+function deleteDomain(id) {
+  if (!confirm('삭제하시겠습니까?')) return;
+  state.domains = state.domains.filter(d => d.id !== id);
+  saveState();
+  renderAll();
+}
+
+// ========================
+// INIT
+// ========================
+auth.onAuthStateChanged(async (user) => {
+  const loginScreen = document.getElementById('login-screen');
+  const userInfo = document.getElementById('user-info');
+  const userPhoto = document.getElementById('user-photo');
+
+  if (user) {
+    currentUser = user;
+    loginScreen.style.display = 'none';
+    userInfo.style.display = 'flex';
+    if (user.photoURL) userPhoto.src = user.photoURL;
+    await loadStateFromFirestore();
+    renderAll();
+  } else {
+    currentUser = null;
+    loginScreen.style.display = 'flex';
+    userInfo.style.display = 'none';
+  }
+});
+</script>
+</body>
+</html>
