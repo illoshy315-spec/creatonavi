@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>크리에이터 대시보드</title>
+<title>크리에이토나비</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4e7a52">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="크리에이토나비">
 <style>
   :root {
     --bg: #f2ede4;
@@ -2518,6 +2523,13 @@ function deleteDomain(id) {
   state.domains = state.domains.filter(d => d.id !== id);
   saveState();
   renderAll();
+}
+
+// ========================
+// SERVICE WORKER
+// ========================
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
 // ========================
